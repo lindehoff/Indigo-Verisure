@@ -9,51 +9,75 @@ import indigo
 import os
 import sys
 import time
+sys.path.insert(0, '../Includes/python-verisure')
+import verisure
 
 # Note the "indigo" module is automatically imported and made available inside
 # our global name space by the host process.
 
 ################################################################################
 class Plugin(indigo.PluginBase):
-	########################################
-	def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
-		indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
-		self.debug = True
+  ########################################
+  def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
+    indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
+    self.debug = True
 
-	def __del__(self):
-		indigo.PluginBase.__del__(self)
+  def __del__(self):
+    indigo.PluginBase.__del__(self)
 
-	########################################
-	def startup(self):
-		self.debugLog(u"startup called, test")
+  ########################################
+  def startup(self):
+    self.debugLog(u"startup called")
+    for dev in indigo.devices.iter("self"):
+      if not dev.enabled or not dev.configured:
+        continue
+      if dev.deviceTypeId == u"verisureDeviceType":
+        self.debugLog(u"Logging in")
+        self.myPages = verisure.MyPages(dev.pluginProps["verisureUsername"], dev.pluginProps["verisurePassword"])
+        self.myPages.login()
 
 
-	def shutdown(self):
-		self.debugLog(u"shutdown called")
+  def shutdown(self):
+    self.debugLog(u"shutdown called")
+    for dev in indigo.devices.iter("self"):
+      if not dev.enabled or not dev.configured:
+        continue
+      if dev.deviceTypeId == u"verisureDeviceType":
+        self.debugLog(u"Logging out")
+        self.myPages.logout()
 
-	########################################
-	# If runConcurrentThread() is defined, then a new thread is automatically created
-	# and runConcurrentThread() is called in that thread after startup() has been called.
-	#
-	# runConcurrentThread() should loop forever and only return after self.stopThread
-	# becomes True. If this function returns prematurely then the plugin host process
-	# will log an error and attempt to call runConcurrentThread() again after several seconds.
-	def runConcurrentThread(self):
-		try:
-			while True:
-				self.debugLog(u"Checking state")
-				self.sleep(10)
-		except self.StopThread:
-			pass	# Optionally catch the StopThread exception and do any needed cleanup.
+  ########################################
+  # If runConcurrentThread() is defined, then a new thread is automatically created
+  # and runConcurrentThread() is called in that thread after startup() has been called.
+  #
+  # runConcurrentThread() should loop forever and only return after self.stopThread
+  # becomes True. If this function returns prematurely then the plugin host process
+  # will log an error and attempt to call runConcurrentThread() again after several seconds.
+  def runConcurrentThread(self):
+    try:
+      while True:
+        for dev in indigo.devices.iter("self"):
+          if not dev.enabled or not dev.configured:
+            continue
+          if dev.deviceTypeId == u"verisureDeviceType":
+            self.debugLog(u"Checking status")
+            
+            alarm_overview = self.myPages.get_overview(verisure.MyPages.DEVICE_ALARM)
+            dev.updateStateOnServer("status", value=alarm_overview[0].status)
+            dev.updateStateOnServer("sensorValue", value=1, uiValue=alarm_overview[0].status)
+            self.debugLog("{0} {1} by {2}".format(alarm_overview[0].label, alarm_overview[0].date, alarm_overview[0].name))
+        self.sleep(15)
+    except self.StopThread:
+      pass  # Optionally catch the StopThread exception and do any needed cleanup.
 
-	########################################
-	# Actions defined in MenuItems.xml:
-	####################
-	def verisureGetUpdate(self):
-		indigo.server.log(u"Update verisure State")
+  ########################################
+  # Actions defined in MenuItems.xml:
+  ####################
+  def verisureGetUpdate(self):
+    indigo.server.log(u"Update verisure State")
 
-	def toggelDebug(self):
-		if self.debug:
-			self.debug = False
-		else:
-			self.debug = True
+  def toggelDebug(self):
+    if self.debug:
+      self.debug = False
+    else:
+      self.debug = True

@@ -1,46 +1,91 @@
 <?xml version="1.0"?>
 <!-- If your plugin defines device types, you can define them here.
 
-	 Devices must specify their type (via the type attribute):
+   Devices must specify their type (via the type attribute):
 
-		relay (ON/OFF/STATUS)
-		dimmer (ON/OFF/DIM/BRIGHTEN/SET BRIGHTNESS/STATUS)
-		speedcontrol (ON/OFF/SET SPEED LEVEL/SET SPEED INDEX/INCREASE/DECREASE/STATUS)
-		sensor (ON/OFF/STATUS)
-		thermostat
-		sprinkler
-		custom
+    relay (ON/OFF/STATUS)
+    dimmer (ON/OFF/DIM/BRIGHTEN/SET BRIGHTNESS/STATUS)
+    speedcontrol (ON/OFF/SET SPEED LEVEL/SET SPEED INDEX/INCREASE/DECREASE/STATUS)
+    sensor (ON/OFF/STATUS)
+    thermostat
+    sprinkler
+    custom
 
-	 The first six inherit states, actions and events from Indigo. You can
-	 also specify your own custom actions and additional states, if needed.
-	 
-	 All of the Device examples below specify the custom type and therefore
-	 must define their own states and actions. See the other example device
-	 plugins that illustrate overriding an existing native type (relay, dimmer,
-	 thermostat, etc.).
-	 
-	 Devices must also specify a unique typeID - so, for instance, if you define
-	 2 relay type devices then your plugin can distinguish between the two by
-	 the typeID.
+   The first six inherit states, actions and events from Indigo. You can
+   also specify your own custom actions and additional states, if needed.
+   
+   All of the Device examples below specify the custom type and therefore
+   must define their own states and actions. See the other example device
+   plugins that illustrate overriding an existing native type (relay, dimmer,
+   thermostat, etc.).
+   
+   Devices must also specify a unique typeID - so, for instance, if you define
+   2 relay type devices then your plugin can distinguish between the two by
+   the typeID.
 -->
 
 <Devices>
-	<!-- This custom device illustrates how a plugin can update custom device
-	states which can be used in Device State Changed triggers, conditionals,
-	and inspected on Control Pages. The python runConcurrentThread() method
-	will update the states every second.
-	-->
-	<Device type="custom" id="verisureDevice">
-		<Name>Verisure Alarm</Name>
-		<ConfigUI>
-			<Field id="autoLabel" type="label">
-				<Label>test: 1, 2, 3.</Label>
-			</Field>
-			<Field id="readOnlyField" type="textfield" readonly="yes" defaultValue="default value">
-				<Label>This is a read-only field</Label>
-			</Field>
-		</ConfigUI>
-		<UiDisplayStateId>verisureState</UiDisplayStateId>
-	</Device>
+  <!-- This custom device illustrates how a plugin can update custom device
+  states which can be used in Device State Changed triggers, conditionals,
+  and inspected on Control Pages. The python runConcurrentThread() method
+  will update the states every second.
+  -->
+  <Device type="sensor" id="verisureDeviceType">
+    <Name>Verisure Alarm</Name>
+   <ConfigUI>
+      <!-- The ConfigUI here is just an example of the type of device
+      specific UI that might be needed. Here you might specify a text
+      field for an IP address, a serial port popup, or other device
+      specific options.
+      -->
 
+      <Field id="verisureUsername" type="textfield" defaultValue="">
+        <Label>Verisure Username:</Label>
+      </Field>
+      <Field id="verisurePassword" type="textfield" defaultValue="">
+        <Label>Verisure Password:</Label>
+      </Field>
+    ￼<Field type="menu" id="updateRate" defaultValue="300">
+      <Label>Status Update Rate:</Label>
+      <List>
+        <Option value="15">15 sec</Option>
+        <Option value="60">1 min</Option>
+        <Option value="300">5 min</Option>
+        <Option value="900">15 min</Option>
+        <Option value="1800">30 min</Option>
+        <Option value="3600">1 hour</Option>
+      </List>
+    </Field>
+      <Field id="SupportsOnState" type="checkbox" defaultValue="false">
+        <Label>Show ON/OFF state:</Label>
+      </Field>
+      <Field id="SupportsSensorValue" type="checkbox" defaultValue="true">
+        <Label>Show sensor value state:</Label>
+      </Field>
+      <Field id="SupportsStatusRequest" type="checkbox" defaultValue="true">
+        <Label>Enable status request / refresh button:</Label>
+      </Field>
+      <Field id="AllowOnStateChange" type="checkbox" defaultValue="true">
+        <Label>Enable controls to override on/off state</Label>
+      </Field>
+    </ConfigUI>
+    <UiDisplayStateId>verisureState</UiDisplayStateId>
+    <States>
+      <State id="status">
+        <ValueType>
+          <List>
+            <Option value="armedhome">Armed Home</Option>
+            <Option value="armed">Armed Away</Option>
+            <Option value="unarmed">Unarmed</Option>
+            <Option value="pending">Update pending</Option>
+            <Option value="unknown">Unknown</Option>
+          </List>
+        </ValueType>
+        <TriggerLabel>Operation Mode Changed</TriggerLabel>
+        <TriggerLabelPrefix>Mode Changed to</TriggerLabelPrefix>
+        <ControlPageLabel>Current Mode</ControlPageLabel>
+        <ControlPageLabelPrefix>Mode is</ControlPageLabelPrefix>
+      </State>
+  </States>
+  </Device>
 </Devices>

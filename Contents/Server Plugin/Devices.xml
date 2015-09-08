@@ -1,0 +1,149 @@
+<?xml version="1.0"?>
+<!-- If your plugin defines device types, you can define them here.
+
+	 Devices must specify their type (via the type attribute):
+
+		relay (ON/OFF/STATUS)
+		dimmer (ON/OFF/DIM/BRIGHTEN/SET BRIGHTNESS/STATUS)
+		speedcontrol (ON/OFF/SET SPEED LEVEL/SET SPEED INDEX/INCREASE/DECREASE/STATUS)
+		sensor (ON/OFF/STATUS)
+		thermostat
+		sprinkler
+		custom
+
+	 The first six inherit states, actions and events from Indigo. You can
+	 also specify your own custom actions and additional states, if needed.
+	 
+	 All of the Device examples below specify the custom type and therefore
+	 must define their own states and actions. See the other example device
+	 plugins that illustrate overriding an existing native type (relay, dimmer,
+	 thermostat, etc.).
+	 
+	 Devices must also specify a unique typeID - so, for instance, if you define
+	 2 relay type devices then your plugin can distinguish between the two by
+	 the typeID.
+-->
+
+<Devices>
+	<!-- This custom device illustrates how a plugin can update custom device
+	states which can be used in Device State Changed triggers, conditionals,
+	and inspected on Control Pages. The python runConcurrentThread() method
+	will update the states every second.
+	-->
+	<Device type="custom" id="serverTimeDevice">
+		<Name>Current Server Time</Name>
+		<ConfigUI>
+			<Field id="autoLabel" type="label">
+				<Label>test: 1, 2, 3.</Label>
+			</Field>
+			<Field id="readOnlyField" type="textfield" readonly="yes" defaultValue="default value">
+				<Label>This is a read-only field</Label>
+			</Field>
+		</ConfigUI>
+		<States>
+			<State id="serverTimeSeconds">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>Current Server Seconds</TriggerLabel>
+				<ControlPageLabel>Current Server Seconds</ControlPageLabel>
+			</State>
+			<State id="serverSecondsEven">
+				<ValueType>Boolean</ValueType>
+				<TriggerLabel>Current Server Seconds is Even</TriggerLabel>
+				<ControlPageLabel>Current Server Seconds is Even</ControlPageLabel>
+			</State>
+			<State id="sep1">
+				<ValueType>Separator</ValueType>
+			</State>
+			<State id="serverDateTime">
+				<ValueType>String</ValueType>
+				<TriggerLabel>Current Server Date and Time</TriggerLabel>
+				<ControlPageLabel>Current Server Date and Time</ControlPageLabel>
+			</State>
+		</States>
+		<UiDisplayStateId>serverTimeSeconds</UiDisplayStateId>
+	</Device>
+
+	<!-- This is another example of using custom device states and shows
+	how states can have different types: Integer, Number (float), and
+	String.
+	-->
+	<Device type="custom" id="stateUpdater">
+		<Name>State Value Updater</Name>
+		<States>
+			<State id="alwaysInteger">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>Always Integer Value</TriggerLabel>
+				<ControlPageLabel>Always Integer Value</ControlPageLabel>
+			</State>
+			<State id="alwaysFloat">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Always Float Value</TriggerLabel>
+				<ControlPageLabel>Always Float Value</ControlPageLabel>
+			</State>
+			<State id="stringToggleFloats">
+				<ValueType>String</ValueType>
+				<TriggerLabel>String Value Toggle 0.0 and 0.000</TriggerLabel>
+				<ControlPageLabel>String Value Toggle 0.0 and 0.000</ControlPageLabel>
+			</State>
+			<State id="stringToggleStrings">
+				<ValueType>String</ValueType>
+				<TriggerLabel>String Value Toggle abc to def</TriggerLabel>
+				<ControlPageLabel>String Value Toggle abc to def</ControlPageLabel>
+			</State>
+			<State id="integerToFloat">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>Integer to Float Value</TriggerLabel>
+				<ControlPageLabel>Integer to Float Value</ControlPageLabel>
+			</State>
+			<State id="integerToString">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>Integer to String Value</TriggerLabel>
+				<ControlPageLabel>Integer to String Value</ControlPageLabel>
+			</State>
+			<State id="floatToString">
+				<ValueType>Number</ValueType>
+				<TriggerLabel>Float to String Value</TriggerLabel>
+				<ControlPageLabel>Float to String Value</ControlPageLabel>
+			</State>
+			<State id="timeStamp">
+				<ValueType>Integer</ValueType>
+				<TriggerLabel>Timestamp</TriggerLabel>
+				<ControlPageLabel>Timestamp</ControlPageLabel>
+			</State>
+		</States>
+		<UiDisplayStateId>timeStamp</UiDisplayStateId>
+	</Device>
+
+	<!-- This example shows how one can create more complex configuration
+	UI. In this case multiple UI controls are used so the user can add
+	(or delete) devices to a scene list. See the "Overview of scene devices"
+	comment in the plugin.py file for more details.
+	-->
+	<Device type="custom" id="sceneExample">
+		<Name>Scene</Name>
+		<ConfigUI>
+			<Field id="sourceDeviceMenu" type="menu">
+				<Label>Device to add to scene:</Label>
+				<List class="self" method="sourceDevices" dynamicReload="true"/>
+			</Field>
+			<Field id="addDevice" type="button">
+				<Label/>
+				<Title>Add Device</Title>
+				<CallbackMethod>addDevice</CallbackMethod>
+			</Field>
+			<Field id="sep1" type="separator"/>
+			<Field id="memberDeviceList" type="list">
+				<Label>Devices in scene:</Label>
+				<List class="self" method="memberDevices" dynamicReload="true"/>
+			</Field>
+			<Field id="deleteDevices" type="button">
+				<Label/>
+				<Title>Delete Devices</Title>
+				<CallbackMethod>deleteDevices</CallbackMethod>
+			</Field>
+			<Field id="memberDevices" type="textfield" hidden="yes">
+				<Label/>
+			</Field>
+		</ConfigUI>
+	</Device>
+</Devices>

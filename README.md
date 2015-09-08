@@ -1,0 +1,1 @@
+#Verisure plugin for Indigo

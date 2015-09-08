@@ -3,22 +3,22 @@
 <plist version="1.0">
 <dict>
 	<key>PluginVersion</key>
-	<string>1.0.6</string>
+	<string>0.0.1</string>
 	<key>ServerApiVersion</key>
 	<string>1.19</string>
 	<key>IwsApiVersion</key>
 	<string>1.0.0</string>
 	<key>CFBundleDisplayName</key>
-	<string>Example Device - Custom</string>
+	<string>Verisure</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.perceptiveautomation.indigoplugin.example-device-custom1</string>
+	<string>se.cobmedia.indigoplugin.verisure</string>
 	<key>CFBundleVersion</key>
 	<string>1.0.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>http://wiki.indigodomo.com/doku.php?id=plugins:example_dev_1</string>
+			<string>http://www.cobmedia.se/indigoplugin/verisure</string>
 		</dict>
 	</array>
 </dict>

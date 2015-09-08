@@ -7,7 +7,11 @@
 -->
 <MenuItems>
 	<MenuItem id="menu1">
-		<Name>Time Warp!</Name>
-		<CallbackMethod>timeWarp</CallbackMethod>
+		<Name>Update</Name>
+		<CallbackMethod>verisureGetUpdate</CallbackMethod>
+	</MenuItem>
+	<MenuItem id="menu2">
+		<Name>Toggel Debug</Name>
+		<CallbackMethod>toggelDebug</CallbackMethod>
 	</MenuItem>
 </MenuItems>

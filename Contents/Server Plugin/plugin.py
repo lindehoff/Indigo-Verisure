@@ -28,6 +28,13 @@ class Plugin(indigo.PluginBase):
   ########################################
   def startup(self):
     self.debugLog(u"startup called")
+    if "verisureUsername" not in self.pluginPrefs or "verisurePassword" not in self.pluginPrefs:
+      self.debugLog(u"Must enter Username and Password in Plugin Config")
+    if "debug" not in indigo.activePlugin.pluginPrefs:
+      indigo.activePlugin.pluginPrefs["debug"] = True
+    else:
+      self.debugLog(u"Debug is set to: "+str(indigo.activePlugin.pluginPrefs["debug"]))
+      self.debug = indigo.activePlugin.pluginPrefs["debug"]
     for dev in indigo.devices.iter("self"):
       if not dev.enabled or not dev.configured:
         continue
@@ -61,8 +68,18 @@ class Plugin(indigo.PluginBase):
             continue
           if dev.deviceTypeId == u"verisureDeviceType":
             self.debugLog(u"Checking status")
-            
-            alarm_overview = self.myPages.get_overview(verisure.MyPages.DEVICE_ALARM)
+            try:
+              alarm_overview = self.myPages.get_overview(verisure.MyPages.DEVICE_ALARM)
+            except Exception, e:
+              self.debugLog(u"Error, trying to relogging in")
+              try:
+                self.myPages.logout()
+                self.myPages = verisure.MyPages(dev.pluginProps["verisureUsername"], dev.pluginProps["verisurePassword"])
+                self.myPages.login()
+              except Exception, e:
+                self.debugLog(u"Unable to login, will try again in a while")
+                self.sleep(60)
+
             dev.updateStateOnServer("status", value=alarm_overview[0].status)
             dev.updateStateOnServer("sensorValue", value=1, uiValue=alarm_overview[0].status)
             self.debugLog("{0} {1} by {2}".format(alarm_overview[0].label, alarm_overview[0].date, alarm_overview[0].name))
@@ -79,5 +96,8 @@ class Plugin(indigo.PluginBase):
   def toggelDebug(self):
     if self.debug:
       self.debug = False
+      indigo.activePlugin.pluginPrefs["debug"] = False
     else:
       self.debug = True
+      indigo.activePlugin.pluginPrefs["debug"] = True
+    self.debugLog(u"Debug is set to: "+str(self.debug))

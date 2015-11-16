@@ -112,6 +112,23 @@
         <ControlPageLabel>Current Mode</ControlPageLabel>
         <ControlPageLabelPrefix>Mode is</ControlPageLabelPrefix>
       </State>
+
+      <State id="name">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Person who made last change</TriggerLabel>
+        <ControlPageLabel>Person who made last change</ControlPageLabel>
+      </State>
+      <State id="label">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Current Label</TriggerLabel>
+        <ControlPageLabel>Current label</ControlPageLabel>
+      </State>
+      <State id="date">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Last change</TriggerLabel>
+        <ControlPageLabel>Last change</ControlPageLabel>
+      </State>
     </States>
   </Device>
 </Devices>
+

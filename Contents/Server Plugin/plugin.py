@@ -30,18 +30,15 @@ class Plugin(indigo.PluginBase):
     self.debugLog(u"startup called")
     if "verisureUsername" not in self.pluginPrefs or "verisurePassword" not in self.pluginPrefs:
       self.debugLog(u"Must enter Username and Password in Plugin Config")
+    else:
+      self.debugLog(u"Logging in")
+      self.myPages = verisure.MyPages(self.pluginPrefs["verisureUsername"], self.pluginPrefs["verisurePassword"])
+      self.myPages.login()
     if "debug" not in indigo.activePlugin.pluginPrefs:
       indigo.activePlugin.pluginPrefs["debug"] = True
     else:
       self.debugLog(u"Debug is set to: "+str(indigo.activePlugin.pluginPrefs["debug"]))
       self.debug = indigo.activePlugin.pluginPrefs["debug"]
-    for dev in indigo.devices.iter("self"):
-      if not dev.enabled or not dev.configured:
-        continue
-      if dev.deviceTypeId == u"verisureDeviceType":
-        self.debugLog(u"Logging in")
-        self.myPages = verisure.MyPages(dev.pluginProps["verisureUsername"], dev.pluginProps["verisurePassword"])
-        self.myPages.login()
 
 
   def shutdown(self):
@@ -67,7 +64,7 @@ class Plugin(indigo.PluginBase):
           if not dev.enabled or not dev.configured:
             continue
           if dev.deviceTypeId == u"verisureDeviceType":
-            self.debugLog(u"Checking status")
+            self.debugLog(u"Checking status for " + dev.name)
             try:
               alarm_overview = self.myPages.get_overview(verisure.MyPages.DEVICE_ALARM)
             except Exception, e:
@@ -82,6 +79,26 @@ class Plugin(indigo.PluginBase):
 
             dev.updateStateOnServer("status", value=alarm_overview[0].status)
             dev.updateStateOnServer("sensorValue", value=1, uiValue=alarm_overview[0].status)
+            self.debugLog("{0} {1} by {2}".format(alarm_overview[0].label, alarm_overview[0].date, alarm_overview[0].name))
+          elif dev.deviceTypeId == u"verisureAlarmDeviceType":
+            self.debugLog(u"Checking status for " + dev.name)
+            try:
+              alarm_overview = self.myPages.get_overview(verisure.MyPages.DEVICE_ALARM)
+            except Exception, e:
+              self.debugLog(u"Error, trying to relogging in")
+              try:
+                self.myPages.logout()
+                self.myPages = verisure.MyPages(self.pluginPrefs["verisureUsername"], self.pluginPrefs["verisurePassword"])
+                self.myPages.login()
+              except Exception, e:
+                self.debugLog(u"Unable to login, will try again in a while")
+                self.sleep(60)
+
+            dev.updateStateOnServer("status", value=alarm_overview[0].status)
+            dev.updateStateOnServer("name", value=alarm_overview[0].name)
+            dev.updateStateOnServer("label", value=alarm_overview[0].label)
+            dev.updateStateOnServer("date", value=alarm_overview[0].date)
+            #dev.updateStateOnServer("sensorValue", value=1, uiValue=alarm_overview[0].status)
             self.debugLog("{0} {1} by {2}".format(alarm_overview[0].label, alarm_overview[0].date, alarm_overview[0].name))
         self.sleep(15)
     except self.StopThread:

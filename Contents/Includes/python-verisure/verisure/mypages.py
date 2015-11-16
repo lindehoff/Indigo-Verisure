@@ -46,6 +46,12 @@ class MyPages(object):
     DEVICE_SMARTPLUG = 'smartplug'
     DEVICE_VACATIONMODE = 'vacationmode'
 
+    ALL_DEVICES = [
+        DEVICE_ALARM, DEVICE_CLIMATE, DEVICE_ETHERNET, DEVICE_HEATPUMP,
+        DEVICE_MOUSEDETECTION, DEVICE_SMARTCAM, DEVICE_SMARTPLUG,
+        DEVICE_VACATIONMODE,
+        ]
+
     SMARTPLUG_ON = 'on'
     SMARTPLUG_OFF = 'off'
     ALARM_ARMED_HOME = 'ARMED_HOME'
@@ -71,6 +77,8 @@ class MyPages(object):
         DEVICE_ALARM: DOMAIN + '/remotecontrol/armstatechange.cmd',
         DEVICE_SMARTPLUG: DOMAIN + '/smartplugs/onoffplug.cmd'
         }
+
+    CHECK_ALARM_STATE = DOMAIN + '/remotecontrol/checkstate.cmd'
 
     RESPONSE_TIMEOUT = 3
 
@@ -136,7 +144,7 @@ class MyPages(object):
         status = _json_to_dict(response.text)
         if isinstance(status, list):
             return [Overview(overview_type, val) for val in status]
-        return Overview(overview_type, status)
+        return [Overview(overview_type, status)]
 
     def get_overview(self, overview):
         """ Read overview of a device type from mypages
@@ -150,10 +158,41 @@ class MyPages(object):
 
         """
 
-        if overview not in MyPages.OVERVIEW_URL.keys():
+        if overview not in MyPages.ALL_DEVICES:
             raise Error('overview {} not recognised'.format(
                 overview))
         return self._read_status(overview)
+
+    def get_overviews(self):
+        """ Read overviews of all device types from mypages
+            Returns: An array of overviews for all device types
+
+        """
+
+        overviews = []
+        for device in self.ALL_DEVICES:
+            overviews.extend(self._read_status(device))
+        return overviews
+
+    def wait_while_pending(self, max_request_count=100):
+        """ Wait for pending alarm to finish
+
+            Args:
+                max_request_count (int): maximum number of post requests
+
+            Returns: True if success eler False
+
+        """
+
+        for counter in range(max_request_count):
+            data = {'counter': counter}
+            response = _json_to_dict(self._post(self.CHECK_ALARM_STATE, data))
+            if 'hasResult' not in response:
+                break
+            if 'hasPending' not in response:
+                return True
+            counter = counter + 1
+        return False
 
     def set_smartplug_status(self, device_id, value):
         """ set status of a smartplug component
@@ -168,7 +207,7 @@ class MyPages(object):
             'targetDeviceLabel': device_id,
             'targetOn': value
             }
-        self._set_status(MyPages.COMMAND_URL[MyPages.DEVICE_SMARTPLUG], data)
+        self._post(MyPages.COMMAND_URL[MyPages.DEVICE_SMARTPLUG], data)
 
     def set_alarm_status(self, code, state):
         """ set status of alarm component
@@ -182,9 +221,9 @@ class MyPages(object):
             'code': code,
             'state': state
             }
-        self._set_status(MyPages.COMMAND_URL[MyPages.DEVICE_ALARM], data)
+        self._post(MyPages.COMMAND_URL[MyPages.DEVICE_ALARM], data)
 
-    def _set_status(self, url, data):
+    def _post(self, url, data):
         """ set status of a component """
 
         self._ensure_session()

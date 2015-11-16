@@ -86,6 +86,32 @@
         <ControlPageLabel>Current Mode</ControlPageLabel>
         <ControlPageLabelPrefix>Mode is</ControlPageLabelPrefix>
       </State>
-  </States>
+    </States>
+  </Device>
+  <Device type="custom" id="verisureAlarmDeviceType">
+    <Name>Verisure Alarm</Name>
+    <ConfigUI>
+      <Field id="verisureAlarmPin" type="textfield" defaultValue="">
+        <Label>Verisure Alarm PIN:</Label>
+      </Field>
+    </ConfigUI>
+    <UiDisplayStateId>verisureState</UiDisplayStateId>
+    <States>
+      <State id="status">
+        <ValueType>
+          <List>
+            <Option value="armedhome">Armed Home</Option>
+            <Option value="armed">Armed Away</Option>
+            <Option value="unarmed">Unarmed</Option>
+            <Option value="pending">Update pending</Option>
+            <Option value="unknown">Unknown</Option>
+          </List>
+        </ValueType>
+        <TriggerLabel>Operation Mode Changed</TriggerLabel>
+        <TriggerLabelPrefix>Mode Changed to</TriggerLabelPrefix>
+        <ControlPageLabel>Current Mode</ControlPageLabel>
+        <ControlPageLabelPrefix>Mode is</ControlPageLabelPrefix>
+      </State>
+    </States>
   </Device>
 </Devices>

@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<PluginConfig>
+	<SupportURL>http://www.cobmedia.se/indigoplugin/verisure</SupportURL>
+
+	<Field id="verisureUsername" type="textfield" defaultValue="">
+		<Label>Verisure Username:</Label>
+	</Field>
+	<Field id="verisurePassword" type="textfield" defaultValue="">
+		<Label>Verisure Password:</Label>
+	</Field>
+<Field type="menu" id="updateRate" defaultValue="300">
+	<Label>Status Update Rate:</Label>
+	<List>
+		<Option value="15">15 sec</Option>
+		<Option value="60">1 min</Option>
+		<Option value="300">5 min</Option>
+		<Option value="900">15 min</Option>
+		<Option value="1800">30 min</Option>
+		<Option value="3600">1 hour</Option>
+	</List>
+</Field>
+</PluginConfig>

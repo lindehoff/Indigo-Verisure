@@ -100,15 +100,57 @@ class Plugin(indigo.PluginBase):
             dev.updateStateOnServer("date", value=alarm_overview[0].date)
             #dev.updateStateOnServer("sensorValue", value=1, uiValue=alarm_overview[0].status)
             self.debugLog("{0} {1} by {2}".format(alarm_overview[0].label, alarm_overview[0].date, alarm_overview[0].name))
+          elif dev.deviceTypeId == u"verisureClimateDeviceType":
+            climate_overviews = self.myPages.get_overview(verisure.MyPages.DEVICE_CLIMATE)
+            for climate_overview in climate_overviews:
+              if (climate_overview.location + " (" +climate_overview.id + ")") == dev.pluginProps["climateID"]:
+                try:
+                  temp = climate_overview.temperature.replace("°","").replace(",",".")
+                  input_value = float(temp)
+                  format_temp = u"%.1f"
+                  input_value = (format_temp % input_value)
+                  dev.updateStateOnServer('sensorValue', value=input_value, uiValue=input_value)
+                  dev.updateStateOnServer('temperature', value=input_value, uiValue=input_value)
+                  dev.updateStateOnServer('timestamp', value=climate_overview.timestamp, uiValue=climate_overview.timestamp)
+                  self.debugLog("Update temp to: {0}".format(temp))
+                except Exception, e:
+                  self.debugLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name, e)))
+                  dev.updateStateOnServer('sensorValue', value=u"Unsupported", uiValue=u"Unsupported")
+                  dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
+
+                dev.updateStateImageOnServer(indigo.kStateImageSel.TemperatureSensorOn)
+                dev.updateStateOnServer('onOffState', value=True, uiValue=" ")
         self.sleep(15)
     except self.StopThread:
       pass  # Optionally catch the StopThread exception and do any needed cleanup.
-
+  def closedDeviceConfigUi(self, valuesDict, userCancelled, typeId, devId):
+      """
+      This method is called whenever a device config dialog is closed.
+      If you call the wrong thing from here, for example, if you try
+      to update a device before it's fully configured, you can make
+      Indigo very angry.
+      """
+      self.debugLog(u'closedDeviceConfigUi() method called:')
+      if userCancelled:
+          self.debugLog(u"Device configuration cancelled.")
+          return
+      else:
+          pass
   ########################################
   # Actions defined in MenuItems.xml:
   ####################
   def verisureGetUpdate(self):
     indigo.server.log(u"Update verisure State")
+
+  def getClimateList(self, filter="indigo.sensor", typeId=0, valuesDict=None, targetId=0):
+    self.debugLog(u"getClimateList() method called.")
+    self.debugLog(u"Generating list of Climate sensors...")
+    climate_overviews = self.myPages.get_overview(verisure.MyPages.DEVICE_CLIMATE)
+    sensorID_list = []
+    for climate_overview in climate_overviews:
+      sensorID_list = sensorID_list + [(climate_overview.location + " (" +climate_overview.id + ")")]
+    sortedSensorList = sorted(sensorID_list)
+    return sortedSensorList
 
   def toggelDebug(self):
     if self.debug:

@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>PluginVersion</key>
-	<string>0.0.1</string>
+	<string>0.1.5</string>
 	<key>ServerApiVersion</key>
 	<string>1.19</string>
 	<key>IwsApiVersion</key>
@@ -11,14 +11,14 @@
 	<key>CFBundleDisplayName</key>
 	<string>Verisure</string>
 	<key>CFBundleIdentifier</key>
-	<string>se.cobmedia.indigoplugin.verisure</string>
+	<string>com.github.lindehoff.indigo-verisure</string>
 	<key>CFBundleVersion</key>
 	<string>1.0.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>http://www.cobmedia.se/indigoplugin/verisure</string>
+			<string>https://github.com/lindehoff/Indigo-Verisure</string>
 		</dict>
 	</array>
 </dict>

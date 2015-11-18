@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <PluginConfig>
-	<SupportURL>http://www.cobmedia.se/indigoplugin/verisure</SupportURL>
+	<SupportURL>https://github.com/lindehoff/Indigo-Verisure</SupportURL>
 
 	<Field id="verisureUsername" type="textfield" defaultValue="">
 		<Label>Verisure Username:</Label>

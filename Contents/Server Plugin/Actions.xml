@@ -1,14 +1,4 @@
 <?xml version="1.0"?>
 <Actions>
-	<SupportURL>http://www.cobmedia.se/indigoplugin/verisure</SupportURL>
-	<Action id="verisureStateUpdate" deviceFilter="self">
-		<Name>Update Verisure State</Name>
-		<CallbackMethod>updateverisureState</CallbackMethod>
-		<ConfigUI>
-			<SupportURL>http://www.cobmedia.se/indigoplugin/verisure</SupportURL>
-			<Field id="description" type="textfield" hidden="true">
-				<Label>Update verisure State</Label>
-			</Field>
-		</ConfigUI>
-	</Action>
+	
 </Actions>

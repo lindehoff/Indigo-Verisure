@@ -6,11 +6,7 @@
 	 back to the user you can post information into the Event Log.
 -->
 <MenuItems>
-	<MenuItem id="menu1">
-		<Name>Update</Name>
-		<CallbackMethod>verisureGetUpdate</CallbackMethod>
-	</MenuItem>
-	<MenuItem id="menu2">
+	<MenuItem id="menuDebug">
 		<Name>Toggel Debug</Name>
 		<CallbackMethod>toggelDebug</CallbackMethod>
 	</MenuItem>

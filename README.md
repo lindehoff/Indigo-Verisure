@@ -17,4 +17,4 @@
 
 ## Devices Supported
 * Verisure alarm (Read only in this version)
-* Climate devices (Only Temerature in this release)
+* Climate devices (Only Temperature in this release)

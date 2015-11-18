@@ -26,3 +26,6 @@ sudo easy_install-2.6 pip requests
 ## Devices Supported
 * Verisure alarm (Read only in this version)
 * Climate devices (Only Temperature in this release)
+
+## Special thanks
+Without [Per Sandström](https://github.com/persandstrom)s [Verisure Python](https://github.com/persandstrom/python-verisure) script this plugin could not exists.

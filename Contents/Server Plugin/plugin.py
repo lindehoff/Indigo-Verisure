@@ -109,7 +109,7 @@ class Plugin(indigo.PluginBase):
                   if not dev.enabled or not dev.configured:
                     continue
                   if dev.deviceTypeId == u"verisureClimateDeviceType":
-                    if (verisure_overview.location + " (" +verisure_overview.id + ")") == dev.pluginProps["climateID"]:
+                    if (verisure_overview.location + " (" +verisure_overview.id + ")") == dev.pluginProps["climateID"].encode('utf-8'):
                       try:
                         temp = verisure_overview.temperature.replace("°","").replace(",",".")
                         input_value = float(temp)

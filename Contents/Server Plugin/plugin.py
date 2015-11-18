@@ -66,7 +66,7 @@ class Plugin(indigo.PluginBase):
         try:
           verisure_overviews = self.myPages.get_overviews()
           for verisure_overview in verisure_overviews:
-            self.debugLog(verisure_overview._overview_type)
+            
             if verisure_overview._overview_type == u"alarm":
               for dev in indigo.devices.iter("self"):
                 if not dev.enabled or not dev.configured:
@@ -89,7 +89,7 @@ class Plugin(indigo.PluginBase):
                     dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
 
                   self.debugLog("{0} {1} by {2}".format(verisure_overview.label, verisure_overview.date, verisure_overview.name))
-            if verisure_overview._overview_type == u"climate":
+            elif verisure_overview._overview_type == u"climate":
               for dev in indigo.devices.iter("self"):
                 if not dev.enabled or not dev.configured:
                   continue
@@ -110,6 +110,8 @@ class Plugin(indigo.PluginBase):
                       self.debugLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name, e)))
                       dev.updateStateOnServer('sensorValue', value=u"Unsupported", uiValue=u"Unsupported")
                       dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
+            else:
+              self.debugLog("Device type " + str(verisure_overview._overview_type) + " in not implemented yet.")
         #self.debugLog(json.dumps(verisure_overviews[0]))
         #for attr in dir(verisure_overviews[0]):
         #  indigo.server.log("verisure_overviews.%s = %s" % (attr, getattr(verisure_overviews[0], attr)))

@@ -38,7 +38,7 @@ class Plugin(indigo.PluginBase):
 
   def login(self):
     if "verisureUsername" not in self.pluginPrefs or "verisurePassword" not in self.pluginPrefs:
-      self.debugLog(u"Must enter Username and Password in Plugin Config")
+      self.errorLog(u"Must enter Username and Password in Plugin Config")
     else:
       self.debugLog(u"Logging in")
       self.myPages = verisure.MyPages(self.pluginPrefs["verisureUsername"], self.pluginPrefs["verisurePassword"])
@@ -63,7 +63,7 @@ class Plugin(indigo.PluginBase):
       try:
         self.login()
       except Exception, e:
-        self.debugLog(str(e))
+        self.errorLog(str(e))
     return
 
   ########################################
@@ -80,63 +80,61 @@ class Plugin(indigo.PluginBase):
           self.debugLog(u"Checking status for all Verisure Devices")
           try:
             verisure_overviews = self.myPages.get_overviews()
-            for verisure_overview in verisure_overviews:
-              
-              if verisure_overview._overview_type == u"alarm":
-                for dev in indigo.devices.iter("self"):
-                  if not dev.enabled or not dev.configured:
-                    continue
-                  if dev.deviceTypeId == u"verisureAlarmDeviceType":
-                    dev.updateStateOnServer("status", value=verisure_overview.status)
-                    dev.updateStateOnServer("name", value=verisure_overview.name)
-                    dev.updateStateOnServer("label", value=verisure_overview.label)
-                    dev.updateStateOnServer("date", value=verisure_overview.date)
-                    #dev.updateStateOnServer("sensorValue", value=1, uiValue=verisure_overview.status)
-                    if verisure_overview.status == u"armed":
-                      dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
-                    elif verisure_overview.status == u"armedhome":
-                      dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
-                    elif verisure_overview.status == u"unarmed":
-                      dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
-                    elif verisure_overview.status == u"pending":
-                      dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
-                    else:
-                      dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
-
-                    self.debugLog("{0} {1} by {2}".format(verisure_overview.label, verisure_overview.date, verisure_overview.name))
-              elif verisure_overview._overview_type == u"climate":
-                for dev in indigo.devices.iter("self"):
-                  if not dev.enabled or not dev.configured:
-                    continue
-                  if dev.deviceTypeId == u"verisureClimateDeviceType":
-                    if (verisure_overview.location + " (" +verisure_overview.id + ")") == dev.pluginProps["climateID"].encode('utf-8'):
-                      try:
-                        temp = verisure_overview.temperature.replace("°","").replace(",",".")
-                        input_value = float(temp)
-                        format_temp = u"%.1f"
-                        input_value = (format_temp % input_value)
-                        dev.updateStateOnServer('sensorValue', value=input_value, uiValue=input_value)
-                        dev.updateStateOnServer('temperature', value=input_value, uiValue=input_value)
-                        dev.updateStateOnServer('timestamp', value=verisure_overview.timestamp, uiValue=verisure_overview.timestamp)
-                        self.debugLog("Update {0}s temperature to: {1}".format(dev.name, temp))
-                        dev.updateStateImageOnServer(indigo.kStateImageSel.TemperatureSensor)
-                        dev.updateStateOnServer('onOffState', value=True, uiValue=" ")
-                      except Exception, e:
-                        self.debugLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name, e)))
-                        dev.updateStateOnServer('sensorValue', value=u"Unsupported", uiValue=u"Unsupported")
-                        dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
-              else:
-                self.debugLog("Device type " + str(verisure_overview._overview_type) + " in not implemented yet.")
-          
           except Exception, e:
-            self.debugLog(u"Error: " + str(e) + ", trying to relogging in")
+            self.errorLog(u"Error: " + str(e) + ", trying to relogging in")
             try:
               self.myPages.logout()
               self.login()
             except Exception, e:
-              self.debugLog(u"Unable to login, will try again in a while")
+              self.errorLog(u"Unable to login, will try again in a while")
               self.sleep(60)
-              continue
+            continue
+          for verisure_overview in verisure_overviews:
+            if verisure_overview._overview_type == u"alarm":
+              for dev in indigo.devices.iter("self"):
+                if not dev.enabled or not dev.configured:
+                  continue
+                if dev.deviceTypeId == u"verisureAlarmDeviceType":
+                  dev.updateStateOnServer("status", value=verisure_overview.status)
+                  dev.updateStateOnServer("name", value=verisure_overview.name)
+                  dev.updateStateOnServer("label", value=verisure_overview.label)
+                  dev.updateStateOnServer("date", value=verisure_overview.date)
+                  #dev.updateStateOnServer("sensorValue", value=1, uiValue=verisure_overview.status)
+                  if verisure_overview.status == u"armed":
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
+                  elif verisure_overview.status == u"armedhome":
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
+                  elif verisure_overview.status == u"unarmed":
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+                  elif verisure_overview.status == u"pending":
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
+                  else:
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
+
+                  self.debugLog("{0} {1} by {2}".format(verisure_overview.label, verisure_overview.date, verisure_overview.name))
+            elif verisure_overview._overview_type == u"climate":
+              for dev in indigo.devices.iter("self"):
+                if not dev.enabled or not dev.configured:
+                  continue
+                if dev.deviceTypeId == u"verisureClimateDeviceType":
+                  if (verisure_overview.location + " (" +verisure_overview.id + ")") == dev.pluginProps["climateID"].encode('utf-8'):
+                    try:
+                      temp = verisure_overview.temperature.replace("°","").replace(",",".")
+                      input_value = float(temp)
+                      format_temp = u"%.1f"
+                      input_value = (format_temp % input_value)
+                      dev.updateStateOnServer('sensorValue', value=input_value, uiValue=input_value)
+                      dev.updateStateOnServer('temperature', value=input_value, uiValue=input_value)
+                      dev.updateStateOnServer('timestamp', value=verisure_overview.timestamp, uiValue=verisure_overview.timestamp)
+                      self.debugLog("Update {0}s temperature to: {1}".format(dev.name, temp))
+                      dev.updateStateImageOnServer(indigo.kStateImageSel.TemperatureSensor)
+                      dev.updateStateOnServer('onOffState', value=True, uiValue=" ")
+                    except Exception, e:
+                      self.errorLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name, e)))
+                      dev.updateStateOnServer('sensorValue', value=u"Unsupported", uiValue=u"Unsupported")
+                      dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
+            else:
+              self.debugLog("Device type " + str(verisure_overview._overview_type) + " in not implemented yet.")
         else:
           self.debugLog(u"Plug-in not configured.")
 
@@ -161,4 +159,4 @@ class Plugin(indigo.PluginBase):
     else:
       self.debug = True
       indigo.activePlugin.pluginPrefs["debug"] = True
-    self.debugLog(u"Debug is set to: "+str(self.debug))
+    indigo.server.log(u"Debuging is set to: "+str(self.debug))

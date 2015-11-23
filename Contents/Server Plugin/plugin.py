@@ -46,7 +46,11 @@ class Plugin(indigo.PluginBase):
       except Exception, e:
         if hasattr(self, "myPages"):
           delattr(self, "myPages")
-        raise Exception('Error login in: ' + str(e)) 
+        if "Too many failed login attempt" in str(e):
+          self.errorLog(str(e) + u",Uable to login, will try again in 10 minutes")
+          self.sleep(60*10)
+        else:
+          raise Exception('Error login in: ' + str(e)) 
 
   def shutdown(self):
     self.debugLog(u"shutdown called")

@@ -29,7 +29,6 @@ class Plugin(indigo.PluginBase):
   ########################################
   def startup(self):
     self.debugLog(u"startup called")
-    self.login()
     if "debug" not in indigo.activePlugin.pluginPrefs:
       indigo.activePlugin.pluginPrefs["debug"] = True
     else:
@@ -51,7 +50,7 @@ class Plugin(indigo.PluginBase):
 
   def shutdown(self):
     self.debugLog(u"shutdown called")
-    if self.myPages:
+    if hasattr(self, "myPages"):
       self.debugLog(u"Logging out")
       self.myPages.logout()
 
@@ -81,14 +80,14 @@ class Plugin(indigo.PluginBase):
           try:
             verisure_overviews = self.myPages.get_overviews()
           except Exception, e:
-            self.errorLog(u"Error: " + str(e) + ", trying to relogging in")
+            self.errorLog(str(e) + ", trying to relogging in")
             try:
               self.myPages.logout()
               self.login()
             except Exception, e:
-              self.errorLog(u"Unable to login, will try again in a while")
+              self.errorLog(str(e) + u",Unable to login, will try again in a while")
               self.sleep(60)
-            continue
+              continue
           for verisure_overview in verisure_overviews:
             if verisure_overview._overview_type == u"alarm":
               for dev in indigo.devices.iter("self"):
@@ -136,7 +135,13 @@ class Plugin(indigo.PluginBase):
             else:
               self.debugLog("Device type " + str(verisure_overview._overview_type) + " in not implemented yet.")
         else:
-          self.debugLog(u"Plug-in not configured.")
+          self.debugLog(u"Currently not logged in, try again.")
+          try:
+              self.login()
+          except Exception, e:
+            self.errorLog(str(e) + u",Unable to login, will try again in a while")
+            self.sleep(60)
+            continue
 
         self.sleep(int(self.pluginPrefs.get('updateRate', 15)))
     except self.StopThread:

@@ -79,5 +79,47 @@
     <UiDisplayStateId>onOffState</UiDisplayStateId>
 
   </Device>
+  <Device
+    type="sensor"
+    id="verisureMouseDetectionDeviceType">
+    <Name>Mouse Detection Device</Name>
+
+    <ConfigUI>
+      <Field
+        id="mouseDetectiorID"
+        type="menu">
+        <Label>Mouse Detectior ID</Label>
+        <List
+          class="self"
+          filter=""
+          method="getMouseDetectiorList"
+          dynamicReload="true"/>
+      </Field>
+      <Field id="SupportsSensorValue" type="checkbox" defaultValue="true">
+        <Label>Show sensor value state:</Label>
+      </Field>
+    </ConfigUI>
+
+    <States>
+      <State id="count">
+        <ValueType>Integer</ValueType>
+        <TriggerLabel>Mice</TriggerLabel>
+        <ControlPageLabel>Mice</ControlPageLabel>
+      </State>
+      <State id="location">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Location</TriggerLabel>
+        <ControlPageLabel>Location</ControlPageLabel>
+      </State>
+      <State id="amountText">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Amount</TriggerLabel>
+        <ControlPageLabel>Amount</ControlPageLabel>
+      </State>
+    </States>
+
+    <UiDisplayStateId>amountText</UiDisplayStateId>
+
+  </Device>
 </Devices>
 

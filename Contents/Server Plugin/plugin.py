@@ -157,6 +157,18 @@ class Plugin(indigo.PluginBase):
     sortedSensorList = sorted(sensorID_list)
     return sortedSensorList
 
+
+  def getMouseDetectiorList(self, filter="indigo.sensor", typeId=0, valuesDict=None, targetId=0):
+    self.debugLog(u"getMouseDetectiorList() method called.")
+    self.debugLog(u"Generating list of mouse detectiors...")
+    mouseDetection_overviews = self.myPages.get_overview(verisure.MyPages.DEVICE_MOUSEDETECTION)
+    sensorID_list = []
+    for mouseDetection_overview in mouseDetection_overviews:
+      sensorID_list = sensorID_list + [(mouseDetection_overview.location + " (" +mouseDetection_overview.deviceLabel + ")")]
+    sortedSensorList = sorted(sensorID_list)
+    return sortedSensorList
+
+
   def toggelDebug(self):
     if self.debug:
       self.debug = False

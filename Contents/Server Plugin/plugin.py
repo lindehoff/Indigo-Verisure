@@ -93,7 +93,7 @@ class Plugin(indigo.PluginBase):
               self.sleep(60)
               continue
           for verisure_overview in verisure_overviews:
-            if verisure_overview._overview_type == u"alarm":
+            if verisure_overview._overview_type == u"alarm" and verisure_overview.type == u"ARM_STATE":
               for dev in indigo.devices.iter("self"):
                 if not dev.enabled or not dev.configured:
                   continue

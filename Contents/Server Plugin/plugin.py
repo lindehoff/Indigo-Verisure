@@ -180,6 +180,16 @@ class Plugin(indigo.PluginBase):
     sortedSensorList = sorted(sensorID_list)
     return sortedSensorList
 
+  def getDoorLockList(self, filter="indigo.sensor", typeId=0, valuesDict=None, targetId=0):
+    self.debugLog(u"getDoorLockList() method called.")
+    self.debugLog(u"Generating list of Door Locks...")
+    lock_overviews = self.myPages.get_overview(verisure.MyPages.DEVICE_LOCK)
+    lockID_list = []
+    for lock_overview in lock_overviews:
+      if lock_overview.type == u"DOOR_LOCK":
+        lockID_list = lockID_list + [(lock_overview.location + " (" +lock_overview.id + ")")]
+    sortedLockList = sorted(lockID_list)
+    return sortedLockList
 
   def getMouseDetectiorList(self, filter="indigo.sensor", typeId=0, valuesDict=None, targetId=0):
     self.debugLog(u"getMouseDetectiorList() method called.")

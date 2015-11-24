@@ -140,6 +140,7 @@
           <List>
             <Option value="unlocked">Unlocked</Option>
             <Option value="locked">Locked</Option>
+            <Option value="pending">Update pending</Option>
           </List>
         </ValueType>
         <TriggerLabel>Door Lock Status Changed</TriggerLabel>

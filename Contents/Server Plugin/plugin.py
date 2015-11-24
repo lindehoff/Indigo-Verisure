@@ -115,6 +115,27 @@ class Plugin(indigo.PluginBase):
                     dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
 
                   self.debugLog("{0} {1} by {2}".format(verisure_overview.label, verisure_overview.date, verisure_overview.name))
+            elif verisure_overview._overview_type == u"lock" and verisure_overview.type == u"DOOR_LOCK":
+              for dev in indigo.devices.iter("self"):
+                if not dev.enabled or not dev.configured:
+                  continue
+                if dev.deviceTypeId == u"verisureDoorLockDeviceType":
+                  dev.updateStateOnServer("status", value=verisure_overview.status)
+                  dev.updateStateOnServer("name", value=verisure_overview.name)
+                  dev.updateStateOnServer("label", value=verisure_overview.label)
+                  dev.updateStateOnServer("date", value=verisure_overview.date)
+                  dev.updateStateOnServer("location", value=verisure_overview.location)
+                  #dev.updateStateOnServer("sensorValue", value=1, uiValue=verisure_overview.status)
+                  if verisure_overview.status == u"locked":
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
+                  elif verisure_overview.status == u"unlocked":
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+                  elif verisure_overview.status == u"pending":
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
+                  else:
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
+
+                  self.debugLog("{0} {1} by {2}".format(verisure_overview.label, verisure_overview.date, verisure_overview.name))
             elif verisure_overview._overview_type == u"climate":
               for dev in indigo.devices.iter("self"):
                 if not dev.enabled or not dev.configured:

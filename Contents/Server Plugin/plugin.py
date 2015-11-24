@@ -132,6 +132,25 @@ class Plugin(indigo.PluginBase):
                       self.errorLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name, e)))
                       dev.updateStateOnServer('sensorValue', value=u"Unsupported", uiValue=u"Unsupported")
                       dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
+            elif verisure_overview._overview_type == u"mousedetection":
+              for dev in indigo.devices.iter("self"):
+                if not dev.enabled or not dev.configured:
+                  continue
+                if dev.deviceTypeId == u"verisureMouseDetectionDeviceType":
+                  if (verisure_overview.location + " (" +verisure_overview.deviceLabel + ")") == dev.pluginProps["mouseDetectiorID"].encode('utf-8'):
+                    try:
+                      count = verisure_overview.count
+                      input_value = int(count)
+                      #dev.updateStateOnServer('sensorValue', value=input_value, uiValue=input_value)
+                      dev.updateStateOnServer('count', value=input_value, uiValue=str(verisure_overview.amountText))
+                      dev.updateStateOnServer('location', value=verisure_overview.location, uiValue=verisure_overview.location)
+                      self.debugLog("Update {0}s mice to: {1}".format(dev.name, input_value))
+                      #dev.updateStateImageOnServer(indigo.kStateImageSel.TemperatureSensor)
+                      dev.updateStateOnServer('onOffState', value=True, uiValue=" ")
+                    except Exception, e:
+                      self.errorLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name, e)))
+                      dev.updateStateOnServer('sensorValue', value=u"Unsupported", uiValue=u"Unsupported")
+                      dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
             else:
               self.debugLog("Device type " + str(verisure_overview._overview_type) + " in not implemented yet.")
         else:

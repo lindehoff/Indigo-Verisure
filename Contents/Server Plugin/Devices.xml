@@ -111,11 +111,6 @@
         <TriggerLabel>Location</TriggerLabel>
         <ControlPageLabel>Location</ControlPageLabel>
       </State>
-      <State id="amountText">
-        <ValueType>String</ValueType>
-        <TriggerLabel>Amount</TriggerLabel>
-        <ControlPageLabel>Amount</ControlPageLabel>
-      </State>
     </States>
 
     <UiDisplayStateId>amountText</UiDisplayStateId>

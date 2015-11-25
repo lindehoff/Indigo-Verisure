@@ -192,9 +192,11 @@ class MyPages(object):
         for counter in range(max_request_count):
             data = {'counter': counter}
             response = _json_to_dict(self._post(self.CHECK_ALARM_STATE, data))
+            if 'hasValidations' in response:
+                return response
             if 'hasResult' not in response:
                 break
-            if 'hasPending' not in response:
+            if 'hasPending' in response and response['hasPending'] == False:
                 return True
             counter = counter + 1
         return False

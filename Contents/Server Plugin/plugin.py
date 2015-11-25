@@ -191,6 +191,17 @@ class Plugin(indigo.PluginBase):
     except self.StopThread:
       pass  # Optionally catch the StopThread exception and do any needed cleanup.
 
+  def getVerisureDeviceList(self, filter="all", typeId=0, valuesDict=None, targetId=0):
+    overviews = self.myPages.get_overview(filter)
+    deviceList = []
+    for overview in overviews:
+      if filter != "lock" or (filter == "lock" and overview.type == u"DOOR_LOCK"): 
+        if hasattr(overview, "id"):
+          deviceList = deviceList + [(overview.id, overview.location)]
+        elif hasattr(overview, "deviceLabel"):
+          deviceList = deviceList + [(overview.deviceLabel, overview.location)]
+    return sorted(deviceList)
+    
   def getClimateList(self, filter="indigo.sensor", typeId=0, valuesDict=None, targetId=0):
     self.debugLog(u"getClimateList() method called.")
     self.debugLog(u"Generating list of Climate sensors...")
@@ -200,17 +211,6 @@ class Plugin(indigo.PluginBase):
       sensorID_list = sensorID_list + [(climate_overview.location + " (" +climate_overview.id + ")")]
     sortedSensorList = sorted(sensorID_list)
     return sortedSensorList
-
-  def getDoorLockList(self, filter="indigo.sensor", typeId=0, valuesDict=None, targetId=0):
-    self.debugLog(u"getDoorLockList() method called.")
-    self.debugLog(u"Generating list of Door Locks...")
-    lock_overviews = self.myPages.get_overview(verisure.MyPages.DEVICE_LOCK)
-    lockID_list = []
-    for lock_overview in lock_overviews:
-      if lock_overview.type == u"DOOR_LOCK":
-        lockID_list = lockID_list + [(lock_overview.location + " (" +lock_overview.id + ")")]
-    sortedLockList = sorted(lockID_list)
-    return sortedLockList
 
   def getMouseDetectiorList(self, filter="indigo.sensor", typeId=0, valuesDict=None, targetId=0):
     self.debugLog(u"getMouseDetectiorList() method called.")
@@ -223,16 +223,21 @@ class Plugin(indigo.PluginBase):
     return sortedSensorList
 
   def updateLockStatus(self, pluginAction, dev):
-    lock = dev.pluginProps['doorLockID'].split('(')[1].split(')')[0]
+    lock = dev.pluginProps['doorLockID']
     pin = pluginAction.props['userPin']
     state = pluginAction.props['new_status']
 
     if hasattr(self, "myPages"):
       try:
-        self.debugLog(u"Updateing Lock status")
+        self.debugLog("Trying to update lock '{0}' to {1}".format(dev.states["location"], state))
         self.myPages.set_lock_status(pin, lock, state)
-        if not self.myPages.wait_while_pending():
-          self.debugLog(u"Updated Lock State")
+        response = self.myPages.wait_while_pending()
+        if not response and "vector" in response:
+          self.errorLog(response["vector"][0]["message"])
+        elif response:
+          self.debugLog(u"Updated Lock State: "+state)
+        else:
+          self.debugLog(u"Unable to updated Lock State")
       except Exception, e:
         self.errorLog(str(e) + u", Unable to change lock state")
 

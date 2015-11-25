@@ -128,8 +128,8 @@
         <Label>Door Lock ID</Label>
         <List
           class="self"
-          filter=""
-          method="getDoorLockList"
+          filter="lock"
+          method="getVerisureDeviceList"
           dynamicReload="true"/>
       </Field>
     </ConfigUI>

@@ -222,6 +222,19 @@ class Plugin(indigo.PluginBase):
     sortedSensorList = sorted(sensorID_list)
     return sortedSensorList
 
+  def updateLockStatus(self, pluginAction, dev):
+    lock = dev.pluginProps['doorLockID'].split('(')[1].split(')')[0]
+    pin = pluginAction.props['userPin']
+    state = pluginAction.props['new_status']
+
+    if hasattr(self, "myPages"):
+      try:
+        self.debugLog(u"Updateing Lock status")
+        self.myPages.set_lock_status(pin, lock, state)
+        if not self.myPages.wait_while_pending():
+          self.debugLog(u"Updated Lock State")
+      except Exception, e:
+        self.errorLog(str(e) + u", Unable to change lock state")
 
   def toggelDebug(self):
     if self.debug:

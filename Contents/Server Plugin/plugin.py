@@ -99,44 +99,48 @@ class Plugin(indigo.PluginBase):
                 if not dev.enabled or not dev.configured:
                   continue
                 if dev.deviceTypeId == u"verisureAlarmDeviceType":
-                  dev.updateStateOnServer("status", value=verisure_overview.status)
-                  dev.updateStateOnServer("name", value=verisure_overview.name)
-                  dev.updateStateOnServer("label", value=verisure_overview.label)
-                  dev.updateStateOnServer("date", value=self.createdDateString(verisure_overview.date))
-                  #dev.updateStateOnServer("sensorValue", value=1, uiValue=verisure_overview.status)
-                  if verisure_overview.status == u"armed":
-                    dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
-                  elif verisure_overview.status == u"armedhome":
-                    dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
-                  elif verisure_overview.status == u"unarmed":
-                    dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
-                  elif verisure_overview.status == u"pending":
-                    dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
-                  else:
-                    dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
-
-                  self.debugLog("{0} {1} by {2}".format(verisure_overview.label, verisure_overview.date, verisure_overview.name))
+                  try:
+                    dev.updateStateOnServer("status", value=verisure_overview.status)
+                    dev.updateStateOnServer("name", value=verisure_overview.name)
+                    dev.updateStateOnServer("label", value=verisure_overview.label)
+                    dev.updateStateOnServer("date", value=self.createdDateString(verisure_overview.date))
+                    #dev.updateStateOnServer("sensorValue", value=1, uiValue=verisure_overview.status)
+                    if verisure_overview.status == u"armed":
+                      dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
+                    elif verisure_overview.status == u"armedhome":
+                      dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
+                    elif verisure_overview.status == u"unarmed":
+                      dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+                    elif verisure_overview.status == u"pending":
+                      dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
+                    else:
+                      dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
+                    self.debugLog("Update {0}s state: {1} {2} by {3}".format(dev.name.encode("utf-8"), verisure_overview.label, verisure_overview.date, verisure_overview.name))
+                  except Exception, e:
+                    self.errorLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name.encode("utf-8"), e)))
             elif verisure_overview._overview_type == u"lock" and verisure_overview.type == u"DOOR_LOCK":
               for dev in indigo.devices.iter("self"):
                 if not dev.enabled or not dev.configured:
                   continue
                 if dev.deviceTypeId == u"verisureDoorLockDeviceType":
-                  dev.updateStateOnServer("status", value=verisure_overview.status)
-                  dev.updateStateOnServer("name", value=verisure_overview.name)
-                  dev.updateStateOnServer("label", value=verisure_overview.label)
-                  dev.updateStateOnServer("date", value=self.createdDateString(verisure_overview.date))
-                  dev.updateStateOnServer("location", value=verisure_overview.location)
-                  #dev.updateStateOnServer("sensorValue", value=1, uiValue=verisure_overview.status)
-                  if verisure_overview.status == u"locked":
-                    dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
-                  elif verisure_overview.status == u"unlocked":
-                    dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
-                  elif verisure_overview.status == u"pending":
-                    dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
-                  else:
-                    dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
-
-                  self.debugLog("{0} {1} by {2}".format(verisure_overview.label, verisure_overview.date, verisure_overview.name))
+                  try:
+                    dev.updateStateOnServer("status", value=verisure_overview.status)
+                    dev.updateStateOnServer("name", value=verisure_overview.name)
+                    dev.updateStateOnServer("label", value=verisure_overview.label)
+                    dev.updateStateOnServer("date", value=self.createdDateString(verisure_overview.date))
+                    dev.updateStateOnServer("location", value=verisure_overview.location)
+                    #dev.updateStateOnServer("sensorValue", value=1, uiValue=verisure_overview.status)
+                    if verisure_overview.status == u"locked":
+                      dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
+                    elif verisure_overview.status == u"unlocked":
+                      dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+                    elif verisure_overview.status == u"pending":
+                      dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
+                    else:
+                      dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
+                    self.debugLog("Update {0}s state: {1} {2} by {3}".format(dev.name.encode("utf-8"), verisure_overview.label, verisure_overview.date, verisure_overview.name))
+                  except Exception, e:
+                    self.errorLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name.encode("utf-8"), e)))
             elif verisure_overview._overview_type == u"climate":
               for dev in indigo.devices.iter("self"):
                 if not dev.enabled or not dev.configured:
@@ -151,11 +155,11 @@ class Plugin(indigo.PluginBase):
                       dev.updateStateOnServer('sensorValue', value=input_value, uiValue=input_value)
                       dev.updateStateOnServer('temperature', value=input_value, uiValue=input_value)
                       dev.updateStateOnServer('timestamp', value=self.createdDateString(verisure_overview.timestamp), uiValue=self.createdDateString(verisure_overview.timestamp))
-                      self.debugLog("Update {0}s temperature to: {1}".format(dev.name, temp))
+                      self.debugLog("Update {0}s temperature to: {1}".format(dev.name.encode("utf-8"), temp))
                       dev.updateStateImageOnServer(indigo.kStateImageSel.TemperatureSensor)
                       dev.updateStateOnServer('onOffState', value=True, uiValue=" ")
                     except Exception, e:
-                      self.errorLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name, e)))
+                      self.errorLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name.encode("utf-8"), e)))
                       dev.updateStateOnServer('sensorValue', value=u"Unsupported", uiValue=u"Unsupported")
                       dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
             elif verisure_overview._overview_type == u"mousedetection":
@@ -167,14 +171,14 @@ class Plugin(indigo.PluginBase):
                     try:
                       count = verisure_overview.count
                       input_value = int(count)
-                      #dev.updateStateOnServer('sensorValue', value=input_value, uiValue=input_value)
+                      
                       dev.updateStateOnServer('count', value=input_value, uiValue=str(verisure_overview.amountText))
                       dev.updateStateOnServer('location', value=verisure_overview.location, uiValue=verisure_overview.location)
-                      self.debugLog("Update {0}s mice to: {1}".format(dev.name, input_value))
-                      #dev.updateStateImageOnServer(indigo.kStateImageSel.TemperatureSensor)
+                      self.debugLog("Update {0}s mice to: {1}".format(dev.name.encode("utf-8"), input_value))
+                      
                       dev.updateStateOnServer('onOffState', value=True, uiValue=" ")
                     except Exception, e:
-                      self.errorLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name, e)))
+                      self.errorLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name.encode("utf-8"), e)))
                       dev.updateStateOnServer('sensorValue', value=u"Unsupported", uiValue=u"Unsupported")
                       dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
             else:

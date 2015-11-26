@@ -1,4 +1,20 @@
 <?xml version="1.0"?>
 <Actions>
-	
+  <Action id="UpdateLockStatus" deviceFilter="self.verisureDoorLockDeviceType">
+    <Name>Update Lock Status</Name>
+    <CallbackMethod>updateLockStatus</CallbackMethod>
+    <ConfigUI>
+      <Field id="userPin" type="textfield" defaultValue="" secure="true">
+        <Label>Verisure Door Lock PIN:</Label>
+      </Field>      
+      <Field id="new_status" type="menu" defaultValue="">
+        <Label>State:</Label>
+        <List>
+          <Option value="LOCKED">Lock</Option>
+          <Option value="UNLOCKED">Unlock</Option>
+        </List>
+      </Field>
+      <SupportURL>https://github.com/lindehoff/Indigo-Verisure/issues</SupportURL>
+    </ConfigUI>
+  </Action>
 </Actions>

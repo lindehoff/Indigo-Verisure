@@ -5,10 +5,11 @@
 # http://www.indigodomo.com
 
 import indigo
-
+import re
 import os
 import sys
 import time
+from datetime import datetime, timedelta
 sys.path.insert(0, '../Includes/python-verisure')
 import verisure
 import json
@@ -101,13 +102,34 @@ class Plugin(indigo.PluginBase):
                   dev.updateStateOnServer("status", value=verisure_overview.status)
                   dev.updateStateOnServer("name", value=verisure_overview.name)
                   dev.updateStateOnServer("label", value=verisure_overview.label)
-                  dev.updateStateOnServer("date", value=verisure_overview.date)
+                  dev.updateStateOnServer("date", value=self.createdDateString(verisure_overview.date))
                   #dev.updateStateOnServer("sensorValue", value=1, uiValue=verisure_overview.status)
                   if verisure_overview.status == u"armed":
                     dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
                   elif verisure_overview.status == u"armedhome":
                     dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOff)
                   elif verisure_overview.status == u"unarmed":
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+                  elif verisure_overview.status == u"pending":
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
+                  else:
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
+
+                  self.debugLog("{0} {1} by {2}".format(verisure_overview.label, verisure_overview.date, verisure_overview.name))
+            elif verisure_overview._overview_type == u"lock" and verisure_overview.type == u"DOOR_LOCK":
+              for dev in indigo.devices.iter("self"):
+                if not dev.enabled or not dev.configured:
+                  continue
+                if dev.deviceTypeId == u"verisureDoorLockDeviceType":
+                  dev.updateStateOnServer("status", value=verisure_overview.status)
+                  dev.updateStateOnServer("name", value=verisure_overview.name)
+                  dev.updateStateOnServer("label", value=verisure_overview.label)
+                  dev.updateStateOnServer("date", value=self.createdDateString(verisure_overview.date))
+                  dev.updateStateOnServer("location", value=verisure_overview.location)
+                  #dev.updateStateOnServer("sensorValue", value=1, uiValue=verisure_overview.status)
+                  if verisure_overview.status == u"locked":
+                    dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
+                  elif verisure_overview.status == u"unlocked":
                     dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
                   elif verisure_overview.status == u"pending":
                     dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
@@ -128,7 +150,7 @@ class Plugin(indigo.PluginBase):
                       input_value = (format_temp % input_value)
                       dev.updateStateOnServer('sensorValue', value=input_value, uiValue=input_value)
                       dev.updateStateOnServer('temperature', value=input_value, uiValue=input_value)
-                      dev.updateStateOnServer('timestamp', value=verisure_overview.timestamp, uiValue=verisure_overview.timestamp)
+                      dev.updateStateOnServer('timestamp', value=self.createdDateString(verisure_overview.timestamp), uiValue=self.createdDateString(verisure_overview.timestamp))
                       self.debugLog("Update {0}s temperature to: {1}".format(dev.name, temp))
                       dev.updateStateImageOnServer(indigo.kStateImageSel.TemperatureSensor)
                       dev.updateStateOnServer('onOffState', value=True, uiValue=" ")
@@ -170,6 +192,17 @@ class Plugin(indigo.PluginBase):
     except self.StopThread:
       pass  # Optionally catch the StopThread exception and do any needed cleanup.
 
+  def getVerisureDeviceList(self, filter="all", typeId=0, valuesDict=None, targetId=0):
+    overviews = self.myPages.get_overview(filter)
+    deviceList = []
+    for overview in overviews:
+      if filter != "lock" or (filter == "lock" and overview.type == u"DOOR_LOCK"): 
+        if hasattr(overview, "id"):
+          deviceList = deviceList + [(overview.id, overview.location)]
+        elif hasattr(overview, "deviceLabel"):
+          deviceList = deviceList + [(overview.deviceLabel, overview.location)]
+    return sorted(deviceList)
+    
   def getClimateList(self, filter="indigo.sensor", typeId=0, valuesDict=None, targetId=0):
     self.debugLog(u"getClimateList() method called.")
     self.debugLog(u"Generating list of Climate sensors...")
@@ -179,7 +212,6 @@ class Plugin(indigo.PluginBase):
       sensorID_list = sensorID_list + [(climate_overview.location + " (" +climate_overview.id + ")")]
     sortedSensorList = sorted(sensorID_list)
     return sortedSensorList
-
 
   def getMouseDetectiorList(self, filter="indigo.sensor", typeId=0, valuesDict=None, targetId=0):
     self.debugLog(u"getMouseDetectiorList() method called.")
@@ -191,6 +223,43 @@ class Plugin(indigo.PluginBase):
     sortedSensorList = sorted(sensorID_list)
     return sortedSensorList
 
+  def updateLockStatus(self, pluginAction, dev):
+    lock = dev.pluginProps['doorLockID']
+    pin = pluginAction.props['userPin']
+    state = pluginAction.props['new_status']
+
+    if hasattr(self, "myPages"):
+      try:
+        self.debugLog("Trying to update lock '{0}' to {1}".format(dev.states["location"], state))
+        self.myPages.set_lock_status(pin, lock, state)
+        response = self.myPages.wait_while_pending()
+        if not response and "vector" in response:
+          self.errorLog(response["vector"][0]["message"])
+        elif response:
+          self.debugLog(u"Updated Lock State: "+state)
+        else:
+          self.debugLog(u"Unable to updated Lock State")
+      except Exception, e:
+        self.errorLog(str(e) + u", Unable to change lock state")
+
+  def createdDateString(self, dateStr):
+    try:
+      dt = str(datetime.strptime(dateStr, "%m/%d/%y %I:%M %p"))
+      return dt
+    except Exception, e:
+      if "today" in dateStr.lower():
+        date = datetime.today().strftime("%Y-%m-%d ")
+      elif "yesterday" in dateStr.lower():
+        date = (datetime.today() - timedelta(1)).strftime("%Y-%m-%d ")
+      else:
+        return dateStr
+      m = re.search('(0?[1-9]|1[012])(:[0-5]\d) [APap][mM]', dateStr)
+      if m:
+        time = m.group(0)
+        dt = str(datetime.strptime(date+time, '%Y-%m-%d %I:%M %p'))
+        return dt
+      else:
+        return dateStr
 
   def toggelDebug(self):
     if self.debug:

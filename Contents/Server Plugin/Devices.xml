@@ -119,9 +119,6 @@
   <Device type="custom" id="verisureDoorLockDeviceType">
     <Name>Verisure Door Lock</Name>
     <ConfigUI>
-      <Field id="verisureAlarmPin" type="textfield" defaultValue="">
-        <Label>Verisure Door Lock PIN:</Label>
-      </Field>
       <Field
         id="doorLockID"
         type="menu">

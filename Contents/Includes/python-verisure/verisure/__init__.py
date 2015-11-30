@@ -7,11 +7,20 @@ __all__ = [
     'Error',
     'LoginError',
     'ResponseError',
-    'MyPages'
+    'MyPages',
     ]
 
-from .mypages import (
+from .mypages import MyPages
+from .session import (
     Error,
     LoginError,
-    ResponseError,
-    MyPages)
+    ResponseError)
+
+
+ALARM_ARMED_HOME = 'ARMED_HOME'
+ALARM_ARMED_AWAY = 'ARMED_AWAY'
+ALARM_DISARMED = 'DISARMED'
+LOCK_LOCKED = 'LOCKED'
+LOCK_UNLOCKED = 'UNLOCKED'
+SMARTPLUG_ON = 'on'
+SMARTPLUG_OFF = 'off'

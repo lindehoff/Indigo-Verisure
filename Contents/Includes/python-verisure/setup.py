@@ -1,14 +1,17 @@
+""" Setup for python-verisure """
+
 from setuptools import setup
 
 setup(
     name='python-verisure',
-    version='0.2.8',
+    version='0.3.2',
     description='read and change status of verisure devices through mypages.',
-    long_description='A module for reading and changing status of ' +
-                     'verisure devices through mypages. Compatible ' +
-                     'with both Python2.7 and Python3.',
+    long_description=
+    'A module for reading and changing status of ' +
+    'verisure devices through mypages. Compatible ' +
+    'with both Python2.7 and Python3.',
     url='http://github.com/persandstrom/python-verisure',
-    author='Per Sandström',
+    author='Per Sandstrom',
     license='MIT',
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -22,5 +25,5 @@ setup(
         ],
     keywords='home automation verisure',
     install_requires=['requests>=2.0'],
-    packages=['verisure'],
+    packages=['verisure', 'verisure.devices'],
     zip_safe=True)

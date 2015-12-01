@@ -235,14 +235,17 @@ class Plugin(indigo.PluginBase):
     if hasattr(self, "myPages"):
       try:
         self.debugLog("Trying to update lock '{0}' to {1}".format(dev.states["location"], state))
-        self.myPages.set_lock_status(pin, lock, state)
-        response = self.myPages.wait_while_pending()
-        if not response and "vector" in response:
-          self.errorLog(response["vector"][0]["message"])
-        elif response:
-          self.debugLog(u"Updated Lock State: "+state)
+        sentStatus = self.myPages.lock.set(pin, lock, state)
+        if sentStatus:
+          response = self.myPages.alarm.wait_while_pending()
+          if type(response) is int and response >= 0:
+            self.debugLog(u"Updated Lock State: "+state)
+          elif "vector" in response:
+            self.errorLog(response["vector"][0]["message"])
+          else:
+            self.debugLog(u"Unable to updated Lock State")
         else:
-          self.debugLog(u"Unable to updated Lock State")
+          self.debugLog(u"Unable to updated Lock State, event not sent.")
       except Exception, e:
         self.errorLog(str(e) + u", Unable to change lock state")
 

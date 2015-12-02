@@ -3,11 +3,18 @@
   <Device type="custom" id="verisureAlarmDeviceType">
     <Name>Verisure Alarm</Name>
     <ConfigUI>
-      <Field id="verisureAlarmPin" type="textfield" defaultValue="">
-        <Label>Verisure Alarm PIN:</Label>
+      <Field
+        id="alarmID"
+        type="menu">
+        <Label>Alarm ID</Label>
+        <List
+          class="self"
+          filter="alarm"
+          method="getVerisureDeviceList"
+          dynamicReload="true"/>
       </Field>
     </ConfigUI>
-    <UiDisplayStateId>verisureState</UiDisplayStateId>
+    <UiDisplayStateId>status</UiDisplayStateId>
     <States>
       <State id="status">
         <ValueType>
@@ -39,6 +46,11 @@
         <ValueType>String</ValueType>
         <TriggerLabel>Last change</TriggerLabel>
         <ControlPageLabel>Last change</ControlPageLabel>
+      </State>
+      <State id="type">
+        <ValueType>String</ValueType>
+        <TriggerLabel>State type</TriggerLabel>
+        <ControlPageLabel>State type</ControlPageLabel>
       </State>
     </States>
   </Device>
@@ -130,7 +142,7 @@
           dynamicReload="true"/>
       </Field>
     </ConfigUI>
-    <UiDisplayStateId>doorLockState</UiDisplayStateId>
+    <UiDisplayStateId>status</UiDisplayStateId>
     <States>
       <State id="status">
         <ValueType>

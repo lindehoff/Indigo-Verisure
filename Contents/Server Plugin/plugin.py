@@ -44,6 +44,10 @@ class Plugin(indigo.PluginBase):
       self.myPages = verisure.MyPages(self.pluginPrefs["verisureUsername"], self.pluginPrefs["verisurePassword"])
       try:
         self.myPages.login()
+      except verisure.LoginError as e:
+        if hasattr(self, "myPages"):
+          delattr(self, "myPages")
+        self.errorLog("Unable to login to Verisure, Reason: {0}".format(e))
       except Exception, e:
         if hasattr(self, "myPages"):
           delattr(self, "myPages")
@@ -80,105 +84,83 @@ class Plugin(indigo.PluginBase):
   def runConcurrentThread(self):
     try:
       while True:
-        if hasattr(self, "myPages"):
-          self.debugLog(u"Checking status for all Verisure Devices")
-          for dev in indigo.devices.iter("self"):
-            if not dev.enabled or not dev.configured:
-              continue
-            #if dev.deviceTypeId == u"verisureAlarmDeviceType" or dev.deviceTypeId == u"verisureDoorLockDeviceType" or dev.deviceTypeId == u"verisureClimateDeviceType":
-            try:
-              self._refreshAlarmStatesFromVerisure(dev)
-            except Exception, e:
-              self.errorLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name.encode("utf-8"), e)))
-          # try:
-          #   verisure_overviews = self.myPages.get_overviews()
-          # except Exception, e:
-          #   self.errorLog(str(e) + ", trying to relogging in")
-          #   try:
-          #     self.myPages.logout()
-          #     self.login()
-          #   except Exception, e:
-          #     self.errorLog(str(e) + u",Unable to login, will try again in a while")
-          #     self.sleep(60)
-          #     continue
-          # for verisure_overview in verisure_overviews:
-          #   if verisure_overview._overview_type == u"alarm" and verisure_overview.type == u"ARM_STATE":
-          #     for dev in indigo.devices.iter("self"):
-          #       if not dev.enabled or not dev.configured:
-          #         continue
-          #       if dev.deviceTypeId == u"verisureAlarmDeviceType" or dev.deviceTypeId == u"verisureDoorLockDeviceType" or dev.deviceTypeId == u"verisureClimateDeviceType":
-          #         try:
-          #           self._refreshAlarmStatesFromVerisure(dev)
-          #         except Exception, e:
-          #           self.errorLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name.encode("utf-8"), e)))
-          #   elif verisure_overview._overview_type == u"mousedetection":
-          #     for dev in indigo.devices.iter("self"):
-          #       if not dev.enabled or not dev.configured:
-          #         continue
-          #       if dev.deviceTypeId == u"verisureMouseDetectionDeviceType":
-          #         if (verisure_overview.location + " (" +verisure_overview.deviceLabel + ")") == dev.pluginProps["mouseDetectiorID"].encode('utf-8'):
-          #           try:
-          #             count = verisure_overview.count
-          #             input_value = int(count)
-                      
-          #             dev.updateStateOnServer('count', value=input_value, uiValue=str(verisure_overview.amountText))
-          #             dev.updateStateOnServer('location', value=verisure_overview.location, uiValue=verisure_overview.location)
-          #             self.debugLog("Update {0}s mice to: {1}".format(dev.name.encode("utf-8"), input_value))
-                      
-          #             dev.updateStateOnServer('onOffState', value=True, uiValue=" ")
-          #           except Exception, e:
-          #             self.errorLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name.encode("utf-8"), e)))
-          #             dev.updateStateOnServer('sensorValue', value=u"Unsupported", uiValue=u"Unsupported")
-          #             dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
-          #   else:
-          #     self.debugLog("Device type " + str(verisure_overview._overview_type) + " in not implemented yet.")
-        else:
+        self.debugLog(u"Checking status for all Verisure Devices")
+        for dev in indigo.devices.iter("self"):
+          if not dev.enabled or not dev.configured:
+            continue
+          self._refreshAlarmStatesFromVerisure(dev)
+        if not hasattr(self, "myPages"):
           self.debugLog(u"Currently not logged in, try again.")
           try:
-              self.login()
+            self.login()
           except Exception, e:
-            self.errorLog(str(e) + u",Unable to login, will try again in a while")
+            self.debugLog("Unable to login, will try again in a while, Reason: {0}".format(str(e)))
             self.sleep(60)
-            continue
-
-        self.sleep(int(self.pluginPrefs.get('updateRate', 15)))
+        else:
+          self.sleep(int(self.pluginPrefs.get('updateRate', 15)))
     except self.StopThread:
       pass  # Optionally catch the StopThread exception and do any needed cleanup.
 
   def _refreshAlarmStatesFromVerisure(self, dev):
-    self.debugLog("Getting update for device: {0}".format(dev.name.encode("utf-8")))
-    if dev.deviceTypeId == u"verisureAlarmDeviceType":
-      verisureDeviceOverview = self.filterByValue(self.myPages.alarm.get(), "id", dev.pluginProps["alarmID"])
-    elif dev.deviceTypeId == u"verisureDoorLockDeviceType":
-      verisureDeviceOverview = self.filterByValue(self.myPages.lock.get(), "id", dev.pluginProps["doorLockID"])
-    elif dev.deviceTypeId == u"verisureClimateDeviceType":
-      verisureDeviceOverview = self.filterByValue(self.myPages.climate.get(), "id", dev.pluginProps["climateID"])
-    elif dev.deviceTypeId == u"verisureMouseDetectionDeviceType":
-      #return
-      verisureDeviceOverview = self.filterByValue(self.myPages.mousedetection.get(), "deviceLabel", dev.pluginProps["mouseDetectiorID"])
+    if hasattr(self, "myPages"):
+      try:
+        self.debugLog("Getting update for device: {0}".format(dev.name.encode("utf-8")))
+        if dev.deviceTypeId == u"verisureAlarmDeviceType":
+          verisureDeviceOverview = self.filterByValue(self.myPages.alarm.get(), "id", dev.pluginProps["alarmID"])
+        elif dev.deviceTypeId == u"verisureDoorLockDeviceType":
+          verisureDeviceOverview = self.filterByValue(self.myPages.lock.get(), "id", dev.pluginProps["doorLockID"])
+        elif dev.deviceTypeId == u"verisureClimateDeviceType":
+          verisureDeviceOverview = self.filterByValue(self.myPages.climate.get(), "id", dev.pluginProps["climateID"])
+        elif dev.deviceTypeId == u"verisureMouseDetectionDeviceType":
+          #return
+          verisureDeviceOverview = self.filterByValue(self.myPages.mousedetection.get(), "deviceLabel", dev.pluginProps["mouseDetectiorID"])
+      except verisure.LoginError as e:
+        self.debugLog("LoginError: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+        delattr(self, "myPages")
+        return
+      except verisure.ResponseError as e:
+        self.debugLog("ResponseError: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+        delattr(self, "myPages")
+        return
+      except verisure.Error as e:
+        self.debugLog("Verisure Error: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+        delattr(self, "myPages")
+        return
+      except Exception, e:
+        self.debugLog("Other:Unable to update device state on server. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+        return
 
-    for state in dev.states:
-      if state in verisureDeviceOverview.__dict__:
-        if state.encode("utf-8") == "date".encode("utf-8") or state.encode("utf-8") == "timestamp".encode("utf-8"):
-          newState = self.createdDateString(verisureDeviceOverview.__dict__[state].encode("utf-8"))
-        elif state.encode("utf-8") == "temperature".encode("utf-8"):
-          temperature = verisureDeviceOverview.__dict__[state].replace("°","").replace(",",".")
-          newState = (u"%.1f" % float(temperature))
-        else:
-          if type(verisureDeviceOverview.__dict__[state]) is str:
-            newState = verisureDeviceOverview.__dict__[state].encode("utf-8")
+      for state in dev.states:
+        if state in verisureDeviceOverview.__dict__:
+          if state.encode("utf-8") == "date".encode("utf-8") or state.encode("utf-8") == "timestamp".encode("utf-8"):
+            newState = self.createdDateString(verisureDeviceOverview.__dict__[state].encode("utf-8"))
+          elif state.encode("utf-8") == "temperature".encode("utf-8"):
+            temperature = verisureDeviceOverview.__dict__[state].replace("°","").replace(",",".")
+            newState = (u"%.1f" % float(temperature))
           else:
-            newState = verisureDeviceOverview.__dict__[state]
-        if state in verisureDeviceOverview.__dict__ and dev.states[state] != newState:
-          oldState = dev.states[state]
-          dev.updateStateOnServer(state, value=newState)
-          self.debugLog("Update state {0}: form {1} to {2} for {3}".format(state, oldState, newState, dev.name.encode("utf-8")))
-        else:
-          self.debugLog("{0}s state {1} has not changed, still set to {2}".format(dev.name.encode("utf-8"), state, newState))
+            if type(verisureDeviceOverview.__dict__[state]) is str:
+              newState = verisureDeviceOverview.__dict__[state].encode("utf-8")
+            else:
+              newState = verisureDeviceOverview.__dict__[state]
+          if state in verisureDeviceOverview.__dict__ and dev.states[state] != newState:
+            oldState = dev.states[state]
+            dev.updateStateOnServer(state, value=newState)
+            self.debugLog("Update state {0}: form {1} to {2} for {3}".format(state, oldState, newState, dev.name.encode("utf-8")))
+          else:
+            self.debugLog("{0}s state {1} has not changed, still set to {2}".format(dev.name.encode("utf-8"), state, newState))
+      dev.updateStateOnServer("lastSynchronized", value=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+      self._updateDevUI(dev)
     self._updateDevUI(dev)
 
+
   def _updateDevUI(self, dev):
+    lastUpdate = self.secSinceLastUpdate(dev)
+    maxUpdateTime = int(self.pluginPrefs.get('updateRate', 15)) * 5
     if dev.deviceTypeId == u"verisureAlarmDeviceType":
+      if lastUpdate > maxUpdateTime:
+        self.debugLog("{0} sec. since last update for device: {1}".format(lastUpdate, dev.name.encode("utf-8")))
+        dev.updateStateOnServer("status", value=u"unknown")
+    
       #Setting correct icon
       if dev.states['status'] == u"armed":
         dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
@@ -191,6 +173,10 @@ class Plugin(indigo.PluginBase):
       else:
         dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
     elif dev.deviceTypeId == u"verisureDoorLockDeviceType":
+     if lastUpdate > maxUpdateTime:
+      self.debugLog("{0} sec. since last update for device: {1}".format(lastUpdate, dev.name.encode("utf-8")))
+      dev.updateStateOnServer("status", value=u"pending")
+    
       #Setting correct icon
       if dev.states['status'] == u"locked":
         dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
@@ -201,19 +187,32 @@ class Plugin(indigo.PluginBase):
       else:
         dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
     elif dev.deviceTypeId == u"verisureClimateDeviceType":
-    #  self.debugLog("Update {0}s temperature to: {1}".format(dev.name.encode("utf-8"), temp))
-    #  dev.updateStateImageOnServer(indigo.kStateImageSel.TemperatureSensor)
-      dev.updateStateOnServer('sensorValue', value=float(dev.states['temperature']), uiValue=str(dev.states['temperature']))
-    #  self.errorLog(unicode("Unable to update device state on server. Device: %s, Reason: %s" % (dev.name.encode("utf-8"), e)))
-    #  dev.updateStateOnServer('sensorValue', value=u"Unsupported", uiValue=u"Unsupported")
-    #  dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
-    elif dev.deviceTypeId == u"verisureMouseDetectionDeviceType":
-      if int(dev.states['count']) > 0:
-        dev.updateStateOnServer('onOffState', True)
+      if lastUpdate > maxUpdateTime:
+        self.debugLog("{0} sec. since last update for device: {1}".format(lastUpdate, dev.name.encode("utf-8")))
+        dev.updateStateOnServer('sensorValue', value=0, uiValue=u"{0} sec. since last update".format(lastUpdate))
+        dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
       else:
-        dev.updateStateOnServer('onOffState', False)
-      dev.updateStateOnServer('sensorValue', value=int(dev.states['count']), uiValue=dev.states['amountText'].encode("utf-8"))
-      
+        dev.updateStateOnServer('sensorValue', value=float(dev.states['temperature']), uiValue=str(dev.states['temperature']))
+        dev.updateStateImageOnServer(indigo.kStateImageSel.TemperatureSensor)
+    elif dev.deviceTypeId == u"verisureMouseDetectionDeviceType":
+      if lastUpdate > maxUpdateTime:
+        self.debugLog("{0} sec. since last update for device: {1}".format(lastUpdate, dev.name.encode("utf-8")))
+        dev.updateStateOnServer('sensorValue', value=0, uiValue=u"{0} sec. since last update".format(lastUpdate))
+        dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
+      else:
+        if int(dev.states['count']) > 0:
+          dev.updateStateOnServer('onOffState', True)
+          dev.updateStateImageOnServer(indigo.kStateImageSel.MotionSensorTripped)
+        else:
+          dev.updateStateOnServer('onOffState', False)
+          dev.updateStateImageOnServer(indigo.kStateImageSel.MotionSensor)
+        dev.updateStateOnServer('sensorValue', value=int(dev.states['count']), uiValue=dev.states['amountText'].encode("utf-8"))
+  
+  def secSinceLastUpdate(self, dev):
+    lastUpdate = datetime.now() - datetime.strptime(dev.states['lastSynchronized'], "%Y-%m-%d %H:%M:%S")
+    #indigo.server.log("{0} udated {1} sec. ago: {2}".format(dev.name.encode("utf-8"), lastUpdate.seconds, str(datetime.strptime(dev.states['lastSynchronized'], "%Y-%m-%d %H:%M:%S"))))
+    return lastUpdate.seconds
+
   def filterByValue(self, items, attribute, value):
     for item in items:
       #indigo.server.log("{0}".format(str(item.__dict__)))

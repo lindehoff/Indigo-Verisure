@@ -85,7 +85,11 @@ class Session(object):
         """ Read all statuses of a device type """
 
         self._ensure_session()
-        response = self._session.get(DOMAIN + url)
+        try:
+            response = self._session.get(DOMAIN + url)
+        except Exception, e:
+            raise Error(e)
+        self.validate_response(response)
         return self.json_to_dict(response.text)
 
     def post(self, url, data):

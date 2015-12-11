@@ -115,19 +115,20 @@ class Plugin(indigo.PluginBase):
           #return
           verisureDeviceOverview = self.filterByValue(self.myPages.mousedetection.get(), "deviceLabel", dev.pluginProps["mouseDetectiorID"])
       except verisure.LoginError as e:
-        self.debugLog("LoginError: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+        self.errorLog("Login Error: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
         delattr(self, "myPages")
         return
       except verisure.ResponseError as e:
-        self.debugLog("ResponseError: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+        self.errorLog("Response Error: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
         delattr(self, "myPages")
         return
       except verisure.Error as e:
-        self.debugLog("Verisure Error: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+        self.errorLog("Verisure Error: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
         delattr(self, "myPages")
         return
       except Exception, e:
-        self.debugLog("Other:Unable to update device state on server. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+        self.errorLog("Unknown Error: Unable to update device state on server. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+        delattr(self, "myPages")
         return
 
       for state in dev.states:
@@ -150,7 +151,8 @@ class Plugin(indigo.PluginBase):
             self.debugLog("{0}s state {1} has not changed, still set to {2}".format(dev.name.encode("utf-8"), state, newState))
       dev.updateStateOnServer("lastSynchronized", value=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
       self._updateDevUI(dev)
-    self._updateDevUI(dev)
+    else:
+      self._updateDevUI(dev)
 
 
   def _updateDevUI(self, dev):
@@ -173,9 +175,9 @@ class Plugin(indigo.PluginBase):
       else:
         dev.updateStateImageOnServer(indigo.kStateImageSel.Error)
     elif dev.deviceTypeId == u"verisureDoorLockDeviceType":
-     if lastUpdate > maxUpdateTime:
-      self.debugLog("{0} sec. since last update for device: {1}".format(lastUpdate, dev.name.encode("utf-8")))
-      dev.updateStateOnServer("status", value=u"pending")
+      if lastUpdate > maxUpdateTime:
+        self.debugLog("{0} sec. since last update for device: {1}".format(lastUpdate, dev.name.encode("utf-8")))
+        dev.updateStateOnServer("status", value=u"pending")
     
       #Setting correct icon
       if dev.states['status'] == u"locked":
@@ -243,7 +245,7 @@ class Plugin(indigo.PluginBase):
 
   def updateLockStatus(self, pluginAction, dev):
     lock = dev.pluginProps['doorLockID']
-    pin = pluginAction.props['userPin']
+    pin = self.substituteVariable(pluginAction.props.get("userPin"), validateOnly=False)
     state = pluginAction.props['new_status']
 
     if hasattr(self, "myPages"):
@@ -253,15 +255,17 @@ class Plugin(indigo.PluginBase):
         if sentStatus:
           response = self.myPages.alarm.wait_while_pending()
           if type(response) is int and response >= 0:
-            self.debugLog(u"Updated Lock State: "+state)
+            indigo.server.log(u"Updated Lock State: "+state)
           elif "vector" in response:
             self.errorLog(response["vector"][0]["message"])
           else:
-            self.debugLog(u"Unable to updated Lock State")
+            self.errorLog(u"Unable to updated Lock State")
         else:
-          self.debugLog(u"Unable to updated Lock State, event not sent.")
+          self.errorLog(u"Unable to updated Lock State, event not sent.")
       except Exception, e:
         self.errorLog(str(e) + u", Unable to change lock state")
+    else:
+      self.debugLog(u"Currently not logged in, try again.")
 
   def createdDateString(self, dateStr):
     try:

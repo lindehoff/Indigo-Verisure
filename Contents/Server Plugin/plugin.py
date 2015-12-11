@@ -261,9 +261,33 @@ class Plugin(indigo.PluginBase):
           else:
             self.errorLog(u"Unable to updated Lock State")
         else:
-          self.errorLog(u"Unable to updated Lock State, event not sent.")
+          self.errorLog(u"Unable to updated Lock State, event not sent, most likely your lock is already set to: {0}".format(state))
       except Exception, e:
         self.errorLog(str(e) + u", Unable to change lock state")
+    else:
+      self.debugLog(u"Currently not logged in, try again.")
+
+  def updateAlarmStatus(self, pluginAction, dev):
+    # alarm = dev.pluginProps['alarmID'] # multiple alarms is not currently supported
+    pin = self.substituteVariable(pluginAction.props.get("userPin"), validateOnly=False)
+    state = pluginAction.props['new_status']
+
+    if hasattr(self, "myPages"):
+      try:
+        self.debugLog("Trying to update alarm state to {0}".format(state))
+        sentStatus = self.myPages.alarm.set(pin, state)
+        if sentStatus:
+          response = self.myPages.alarm.wait_while_pending()
+          if type(response) is int and response >= 0:
+            indigo.server.log(u"Updated Alarm State: "+state)
+          elif "vector" in response:
+            self.errorLog(response["vector"][0]["message"])
+          else:
+            self.errorLog(u"Unable to updated Alarm State")
+        else:
+          self.errorLog(u"Unable to updated Alarm State, event not sent, most likely your alarm is already set to: {0}".format(state))
+      except Exception, e:
+        self.errorLog(str(e) + u", Unable to change alarm state")
     else:
       self.debugLog(u"Currently not logged in, try again.")
 

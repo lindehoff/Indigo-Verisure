@@ -3,11 +3,18 @@
   <Device type="custom" id="verisureAlarmDeviceType">
     <Name>Verisure Alarm</Name>
     <ConfigUI>
-      <Field id="verisureAlarmPin" type="textfield" defaultValue="">
-        <Label>Verisure Alarm PIN:</Label>
+      <Field
+        id="alarmID"
+        type="menu">
+        <Label>Alarm ID</Label>
+        <List
+          class="self"
+          filter="alarm"
+          method="getVerisureDeviceList"
+          dynamicReload="true"/>
       </Field>
     </ConfigUI>
-    <UiDisplayStateId>verisureState</UiDisplayStateId>
+    <UiDisplayStateId>status</UiDisplayStateId>
     <States>
       <State id="status">
         <ValueType>
@@ -40,11 +47,19 @@
         <TriggerLabel>Last change</TriggerLabel>
         <ControlPageLabel>Last change</ControlPageLabel>
       </State>
+      <State id="type">
+        <ValueType>String</ValueType>
+        <TriggerLabel>State type</TriggerLabel>
+        <ControlPageLabel>State type</ControlPageLabel>
+      </State>
+      <State id="lastSynchronized">
+        <ValueType>string</ValueType>
+        <TriggerLabel>Synchronized with Verisure</TriggerLabel>
+        <ControlPageLabel>Synchronized with Verisure</ControlPageLabel>
+      </State>
     </States>
   </Device>
-  <Device
-    type="sensor"
-    id="verisureClimateDeviceType">
+  <Device type="sensor" id="verisureClimateDeviceType">
     <Name>Verisure Climate Device</Name>
 
     <ConfigUI>
@@ -54,15 +69,15 @@
         <Label>Climate ID</Label>
         <List
           class="self"
-          filter=""
-          method="getClimateList"
+          filter="climate"
+          method="getVerisureDeviceList"
           dynamicReload="true"/>
       </Field>
-      <Field id="SupportsSensorValue" type="checkbox" defaultValue="true">
+      <Field id="SupportsSensorValue" type="checkbox" defaultValue="true" hidden="yes">
         <Label>Show sensor value state:</Label>
       </Field>
     </ConfigUI>
-
+    <UiDisplayStateId>temperature</UiDisplayStateId>
     <States>
       <State id="timestamp">
         <ValueType>String</ValueType>
@@ -74,14 +89,14 @@
         <TriggerLabel>Temperature</TriggerLabel>
         <ControlPageLabel>Temperature</ControlPageLabel>
       </State>
+      <State id="lastSynchronized">
+        <ValueType>string</ValueType>
+        <TriggerLabel>Synchronized with Verisure</TriggerLabel>
+        <ControlPageLabel>Synchronized with Verisure</ControlPageLabel>
+      </State>
     </States>
-
-    <UiDisplayStateId>onOffState</UiDisplayStateId>
-
   </Device>
-  <Device
-    type="sensor"
-    id="verisureMouseDetectionDeviceType">
+  <Device type="sensor" id="verisureMouseDetectionDeviceType">
     <Name>Mouse Detection Device</Name>
 
     <ConfigUI>
@@ -91,15 +106,15 @@
         <Label>Mouse Detectior ID</Label>
         <List
           class="self"
-          filter=""
-          method="getMouseDetectiorList"
+          filter="mousedetection"
+          method="getVerisureDeviceList"
           dynamicReload="true"/>
       </Field>
-      <Field id="SupportsSensorValue" type="checkbox" defaultValue="true">
+      <Field id="SupportsSensorValue" type="checkbox" defaultValue="true" hidden="yes">
         <Label>Show sensor value state:</Label>
       </Field>
     </ConfigUI>
-
+    <UiDisplayStateId>amountText</UiDisplayStateId>
     <States>
       <State id="count">
         <ValueType>Integer</ValueType>
@@ -111,10 +126,17 @@
         <TriggerLabel>Location</TriggerLabel>
         <ControlPageLabel>Location</ControlPageLabel>
       </State>
+      <State id="amountText">
+        <ValueType>String</ValueType>
+        <TriggerLabel>amountText</TriggerLabel>
+        <ControlPageLabel>amountText</ControlPageLabel>
+      </State>
+      <State id="lastSynchronized">
+        <ValueType>string</ValueType>
+        <TriggerLabel>Synchronized with Verisure</TriggerLabel>
+        <ControlPageLabel>Synchronized with Verisure</ControlPageLabel>
+      </State>
     </States>
-
-    <UiDisplayStateId>amountText</UiDisplayStateId>
-
   </Device>
   <Device type="custom" id="verisureDoorLockDeviceType">
     <Name>Verisure Door Lock</Name>
@@ -130,7 +152,7 @@
           dynamicReload="true"/>
       </Field>
     </ConfigUI>
-    <UiDisplayStateId>doorLockState</UiDisplayStateId>
+    <UiDisplayStateId>status</UiDisplayStateId>
     <States>
       <State id="status">
         <ValueType>
@@ -161,11 +183,16 @@
         <TriggerLabel>Last change</TriggerLabel>
         <ControlPageLabel>Last change</ControlPageLabel>
       </State>
-  
+
       <State id="location">
         <ValueType>String</ValueType>
         <TriggerLabel>Location</TriggerLabel>
         <ControlPageLabel>Location</ControlPageLabel>
+      </State>
+      <State id="lastSynchronized">
+        <ValueType>string</ValueType>
+        <TriggerLabel>Synchronized with Verisure</TriggerLabel>
+        <ControlPageLabel>Synchronized with Verisure</ControlPageLabel>
       </State>
     </States>
   </Device>

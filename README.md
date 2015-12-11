@@ -22,9 +22,10 @@ sudo easy_install-2.6 pip requests
 
 ## Actions Supported
 * Update Lock Status (Lock and Unlock)
+* Update Alarm Status (Arm (Home and Away) and Disarm)
 
 ## Devices Supported
-* Verisure alarm (Read only in this version)
+* Verisure alarm
 * Climate devices (Only Temperature in this release)
 * Smart Locks
 * Mice Detector

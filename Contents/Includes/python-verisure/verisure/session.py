@@ -139,7 +139,7 @@ class Session(object):
 
         if response.status_code != 200:
             raise ResponseError(
-                'status code: {} - {}'.format(
+                'status code: {0} - {1}'.format(
                     response.status_code,
                     response.text))
 

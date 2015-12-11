@@ -17,4 +17,22 @@
       <SupportURL>https://github.com/lindehoff/Indigo-Verisure/issues</SupportURL>
     </ConfigUI>
   </Action>
+  <Action id="UpdateAlarmStatus" deviceFilter="self.verisureAlarmDeviceType">
+    <Name>Update Alarm Status</Name>
+    <CallbackMethod>updateAlarmStatus</CallbackMethod>
+    <ConfigUI>
+      <Field id="userPin" type="textfield" defaultValue="" secure="true">
+        <Label>Verisure Alarm PIN:</Label>
+      </Field>      
+      <Field id="new_status" type="menu" defaultValue="">
+        <Label>State:</Label>
+        <List>
+            <Option value="ARMED_HOME">Armed Home</Option>
+            <Option value="ARMED_AWAY">Armed Away</Option>
+            <Option value="DISARMED">Unarmed</Option>
+        </List>
+      </Field>
+      <SupportURL>https://github.com/lindehoff/Indigo-Verisure/issues</SupportURL>
+    </ConfigUI>
+  </Action>
 </Actions>

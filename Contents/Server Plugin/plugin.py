@@ -211,9 +211,14 @@ class Plugin(indigo.PluginBase):
         dev.updateStateOnServer('sensorValue', value=int(dev.states['count']), uiValue=dev.states['amountText'].encode("utf-8"))
   
   def secSinceLastUpdate(self, dev):
-    lastUpdate = datetime.now() - datetime.strptime(dev.states['lastSynchronized'], "%Y-%m-%d %H:%M:%S")
-    #indigo.server.log("{0} udated {1} sec. ago: {2}".format(dev.name.encode("utf-8"), lastUpdate.seconds, str(datetime.strptime(dev.states['lastSynchronized'], "%Y-%m-%d %H:%M:%S"))))
-    return lastUpdate.seconds
+    try:
+      lastUpdate = datetime.now() - datetime.strptime(dev.states['lastSynchronized'], "%Y-%m-%d %H:%M:%S")
+      seconds = lastUpdate.seconds
+    except Exception, e:
+      #This will happen when dev.states['lastSynchronized'] is not set
+      self.debugLog("Unable to convert '{0}' to a datetime object".format(dev.states['lastSynchronized']))
+      seconds = 0
+    return seconds
 
   def filterByValue(self, items, attribute, value):
     for item in items:

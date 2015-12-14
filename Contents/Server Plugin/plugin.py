@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, '../Includes/python-verisure')
 import verisure
 import json
+import indigoPluginUpdateChecker
 
 # Note the "indigo" module is automatically imported and made available inside
 # our global name space by the host process.
@@ -23,6 +24,7 @@ class Plugin(indigo.PluginBase):
   def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
     indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
     self.debug = True
+    self.updater = indigoPluginUpdateChecker.updateChecker(self, "https://raw.githubusercontent.com/lindehoff/Indigo-Verisure/master/versionInfoFile.html")
 
   def __del__(self):
     indigo.PluginBase.__del__(self)
@@ -84,6 +86,7 @@ class Plugin(indigo.PluginBase):
   def runConcurrentThread(self):
     try:
       while True:
+        self.updater.checkVersionPoll()
         self.debugLog(u"Checking status for all Verisure Devices")
         for dev in indigo.devices.iter("self"):
           if not dev.enabled or not dev.configured:
@@ -365,3 +368,7 @@ class Plugin(indigo.PluginBase):
       # ** IMPLEMENT ME **
       indigo.server.log(u"sent \"%s\" %s" % (dev.name, "status request"))
       self._refreshAlarmStatesFromVerisure(dev)
+
+  def checkForUpdates(self):
+   indigo.server.log(u"Manually checking for updates")
+   self.updater.checkVersionNow()

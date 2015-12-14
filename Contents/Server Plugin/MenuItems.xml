@@ -10,4 +10,9 @@
 		<Name>Toggel Debug</Name>
 		<CallbackMethod>toggelDebug</CallbackMethod>
 	</MenuItem>
+
+    <MenuItem id="menuCheckForUpdates">
+        <Name>Check for Updates</Name>
+        <CallbackMethod>checkForUpdates</CallbackMethod>
+    </MenuItem>
 </MenuItems>

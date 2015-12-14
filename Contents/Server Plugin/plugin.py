@@ -24,7 +24,7 @@ class Plugin(indigo.PluginBase):
   def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
     indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
     self.debug = True
-    self.updater = indigoPluginUpdateChecker.updateChecker(self, "https://raw.githubusercontent.com/lindehoff/Indigo-Verisure/Feature-PluginUpdateChecker/versionInfoFile.html") #https://raw.githubusercontent.com/lindehoff/Indigo-Verisure/master/versionInfoFile.html
+    self.updater = indigoPluginUpdateChecker.updateChecker(self, "https://raw.githubusercontent.com/lindehoff/Indigo-Verisure/master/versionInfoFile.html")
 
   def __del__(self):
     indigo.PluginBase.__del__(self)
@@ -369,6 +369,6 @@ class Plugin(indigo.PluginBase):
       indigo.server.log(u"sent \"%s\" %s" % (dev.name, "status request"))
       self._refreshAlarmStatesFromVerisure(dev)
 
-def checkForUpdates(self):
+  def checkForUpdates(self):
    indigo.server.log(u"Manually checking for updates")
    self.updater.checkVersionNow()

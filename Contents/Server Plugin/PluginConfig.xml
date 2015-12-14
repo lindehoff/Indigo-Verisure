@@ -5,7 +5,7 @@
   <Field id="verisureUsername" type="textfield" defaultValue="">
     <Label>Verisure Username:</Label>
   </Field>
-  <Field id="verisurePassword" type="textfield" defaultValue="">
+  <Field id="verisurePassword" type="textfield" defaultValue="" secure="true">
     <Label>Verisure Password:</Label>
   </Field>
   <Field type="menu" id="updateRate" defaultValue="300">
@@ -19,16 +19,17 @@
       <Option value="3600">1 hour</Option>
     </List>
   </Field>
+
+￼<Field id="simpleSeparator1" type="separator"/>
+
+  <Field id="updaterEmailsEnabled" type="checkbox" defaultValue="true">
+     <Label>Email Update Notifications:</Label>
+  </Field>
   <!-- Do NOT change the ids -->
   <Field id="updaterEmail" type="textfield">
      <Label>Email:</Label>
   </Field>
   <Field id="updaterEmailNote" type="label" fontColor="darkgray" fontSize="small" alignWithControl="true">
      <Label>Email sending must be configured in Indigo's preferences.</Label>
-  </Field>
-
-  <!-- Optionally a checkbox can also be used. -->
-  <Field id="updaterEmailsEnabled" type="checkbox" defaultValue="true">
-     <Label>Email Update Notifications:</Label>
   </Field>
 </PluginConfig>

@@ -131,7 +131,15 @@ class Session(object):
         ''' transform json with unicode characters to dict '''
 
         true, false, null = True, False, None
-        return eval(UNESCAPE(json))
+        if "<title>My Pages is temporarily unavailable - Verisure</title>" in json:
+            raise ResponseError('Temporarily unavailable')
+        elif "<title>Choose country - My Pages - Verisure</title>" in json:
+            raise ResponseError('Not logged in')
+        try:
+            orgJson = json.encode('utf-8')
+            return eval(UNESCAPE(json))
+        except Exception, e:
+            raise ResponseError('Unable to convert to JSON, Error: {0} - Data: {1}'.format(e, orgJson))
 
     @staticmethod
     def validate_response(response):

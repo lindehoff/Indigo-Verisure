@@ -25,16 +25,25 @@ class Error(Exception):
     ''' mypages error '''
     pass
 
-
 class LoginError(Error):
     ''' login failed '''
     pass
-
 
 class ResponseError(Error):
     ''' Unexcpected response '''
     pass
 
+class LoggedOutError(ResponseError):
+    ''' Unexcpected response '''
+    pass
+
+class TemporarilyUnavailableError(ResponseError):
+    ''' My Pages is temporarily unavailable '''
+    pass
+
+class MaintenanceError(ResponseError):
+    ''' My Pages is currently in maintenance '''
+    pass
 
 class Session(object):
     """ Verisure session """
@@ -131,10 +140,6 @@ class Session(object):
         ''' transform json with unicode characters to dict '''
 
         true, false, null = True, False, None
-        if "<title>My Pages is temporarily unavailable - Verisure</title>" in json:
-            raise ResponseError('Temporarily unavailable')
-        elif "<title>Choose country - My Pages - Verisure</title>" in json:
-            raise ResponseError('Not logged in')
         try:
             orgJson = json.encode('utf-8')
             return eval(UNESCAPE(json))
@@ -144,10 +149,15 @@ class Session(object):
     @staticmethod
     def validate_response(response):
         """ Verify that response is OK """
-
+        if "<title>My Pages is temporarily unavailable -  Verisure</title>" in response.text:
+            raise TemporarilyUnavailableError('Temporarily unavailable')
+        elif "<title>My Pages - Maintenance -  Verisure</title>" in response.text:
+            raise MaintenanceError('Maintenance')
+        elif "<title>Choose country - My Pages - Verisure</title>" in response.text:
+            raise LoggedOutError('Not logged in')
         if response.status_code != 200:
             raise ResponseError(
-                'status code: {0} - {1}'.format(
+                'Unable to validate response form My Pages, status code: {0} - Data: {1}'.format(
                     response.status_code,
-                    response.text))
+                    response.text.encode('utf-8')))
 

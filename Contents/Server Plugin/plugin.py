@@ -53,7 +53,6 @@ class Plugin(indigo.PluginBase):
         self.myPages.login()
         self.debugLog(u"Logging in successfully.")
         self.tryingToLogin = False
-        
 
   def shutdown(self):
     self.debugLog(u"shutdown called")
@@ -96,29 +95,21 @@ class Plugin(indigo.PluginBase):
           self.debugLog(u"Currently not logged in, try again.")
           try:
             self.login()
-          except verisure.LoginError as e:
-            if hasattr(self, "myPages"):
-              delattr(self, "myPages")
-            if "The email address or password you entered is incorrect." in str(e):
-              self.errorLog("{0}".format(e))
-              self.debugLog(str(self.tryingToLogin))
-            else:
-              self.errorLog("Unable to login to Verisure, Reason: {0}".format(e))
-              self.tryingToLogin = False
           except Exception, e:
             if hasattr(self, "myPages"):
               delattr(self, "myPages")
+            sleep = 60
             if "Too many failed login attempt" in str(e):
-              self.debugLog(str(self.tryingToLogin))
-              self.errorLog(str(e) + u",Uable to login, will try again in 10 minutes")
-              self.concurrentThreadSleep(60*10)
-              self.tryingToLogin = False
-              continue
-            else:
-              self.debugLog("Unable to login, will try again in a while, Reason: {0}".format(str(e)))
-              self.concurrentThreadSleep(60)
-              self.tryingToLogin = False
-              continue
+              sleep = 60*10
+            elif type(e) == verisure.MaintenanceError:
+              sleep = 120
+            elif type(e) == verisure.LoggedOutError:
+              sleep = 5
+
+            self.errorLog("{0}: Unable to login to Verisure, retry in {1} sec. Reason: {2}".format(type(e).__name__, sleep, e))
+            self.concurrentThreadSleep(sleep)
+            self.tryingToLogin = False
+            continue
         self.concurrentThreadSleep(int(self.pluginPrefs.get('updateRate', 300)))
     except self.StopThread:
       pass  # Optionally catch the StopThread exception and do any needed cleanup.
@@ -143,16 +134,12 @@ class Plugin(indigo.PluginBase):
         elif dev.deviceTypeId == u"verisureMouseDetectionDeviceType":
           #return
           verisureDeviceOverview = self.filterByValue(self.myPages.mousedetection.get(), "deviceLabel", dev.pluginProps["mouseDetectiorID"])
-      except verisure.LoginError as e:
-        self.errorLog("Login Error: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+      except (verisure.LoggedOutError, verisure.TemporarilyUnavailableError) as e:
+        self.debugLog("{0}: Unable to update device state on server. Connection to Verisure will be reseted. Device: {1}, Reason: {2}".format(type(e).__name__, dev.name.encode("utf-8"), e))
         delattr(self, "myPages")
         return
-      except verisure.ResponseError as e:
-        self.errorLog("Response Error: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
-        delattr(self, "myPages")
-        return
-      except verisure.Error as e:
-        self.errorLog("Verisure Error: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+      except (verisure.MaintenanceError, verisure.LoginError, verisure.ResponseError, verisure.Error) as e:
+        self.errorLog("{0}: Unable to update device state on server. Connection to Verisure will be reseted. Device: {1}, Reason: {2}".format(type(e).__name__, dev.name.encode("utf-8"), e))
         delattr(self, "myPages")
         return
       except Exception, e:

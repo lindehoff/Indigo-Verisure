@@ -32,3 +32,6 @@ sudo easy_install-2.6 pip requests
 
 ## Special thanks
 Without [Per Sandström](https://github.com/persandstrom)s [Verisure Python](https://github.com/persandstrom/python-verisure) script this plugin could not exists.
+
+## Legal Disclaimer
+This plugin is not affiliated with Verisure Holding AB and the developers take no legal responsibility for the functionality or security of your Verisure Alarms and devices.

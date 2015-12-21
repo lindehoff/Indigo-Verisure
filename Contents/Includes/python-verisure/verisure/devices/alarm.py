@@ -52,7 +52,6 @@ class Alarm(object):
         for counter in range(max_request_count):
             data = {'counter': counter}
             response = self._session.json_to_dict(self._session.post(CHECK_STATE, data))
-            print response
             if 'hasResult' not in response:
                 return response
             if 'hasPending' in response and not response['hasPending']:

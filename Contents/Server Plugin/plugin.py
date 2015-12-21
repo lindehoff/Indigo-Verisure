@@ -112,9 +112,11 @@ class Plugin(indigo.PluginBase):
               sleep = 120
             elif type(e) == verisure.LoggedOutError:
               sleep = 5
-            sleep += 60 * self.loginErrorCount
-
-            self.errorLog("{0}: Unable to login to Verisure ({1}), retry in {2} sec. Reason: {3}".format(type(e).__name__, self.loginErrorCount, sleep, e))
+            sleep += (60 * self.loginErrorCount) - 60
+            if self.loginErrorCount <=2:
+              self.debugLog("{0}: Unable to login to Verisure ({1}), retry in {2} sec. Reason: {3}".format(type(e).__name__, self.loginErrorCount, sleep, e))  
+            else:
+              self.errorLog("{0}: Unable to login to Verisure ({1}), retry in {2} sec. Reason: {3}".format(type(e).__name__, self.loginErrorCount, sleep, e))
             self.concurrentThreadSleep(sleep)
             self.tryingToLogin = False
             continue
@@ -146,7 +148,7 @@ class Plugin(indigo.PluginBase):
         self.debugLog("{0}: Unable to update device state on server. Connection to Verisure will be reseted. Device: {1}, Reason: {2}".format(type(e).__name__, dev.name.encode("utf-8"), e))
 
         #Only during testing
-        self.errorLog("{0}: Unable to update device state on server. Connection to Verisure will be reseted. Device: {1}, Reason: {2}".format(type(e).__name__, dev.name.encode("utf-8"), e))
+        #self.errorLog("{0}: Unable to update device state on server. Connection to Verisure will be reseted. Device: {1}, Reason: {2}".format(type(e).__name__, dev.name.encode("utf-8"), e))
         delattr(self, "myPages")
         return
       except (verisure.MaintenanceError, verisure.LoginError, verisure.ResponseError, verisure.Error) as e:
@@ -186,7 +188,7 @@ class Plugin(indigo.PluginBase):
 
   def _updateDevUI(self, dev):
     lastUpdate = self.secSinceLastUpdate(dev)
-    maxUpdateTime = int(self.pluginPrefs.get('updateRate', 15)) * 5
+    maxUpdateTime = int(self.pluginPrefs.get('updateRate', 15)) * 10
     if dev.deviceTypeId == u"verisureAlarmDeviceType":
       if lastUpdate > maxUpdateTime:
         self.debugLog("{0} sec. since last update for device: {1}".format(lastUpdate, dev.name.encode("utf-8")))

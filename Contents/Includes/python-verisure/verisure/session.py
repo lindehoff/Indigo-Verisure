@@ -21,29 +21,38 @@ CSRF_REGEX = re.compile(
     r'(?P<csrf>([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}))' +
     r'" /\>')
 
+TITLE_REGEX = re.compile(r'\<title\>(?P<title>(.*))\</title\>')
+
+
 class Error(Exception):
     ''' mypages error '''
     pass
+
 
 class LoginError(Error):
     ''' login failed '''
     pass
 
+
 class ResponseError(Error):
     ''' Unexcpected response '''
     pass
+
 
 class LoggedOutError(ResponseError):
     ''' Unexcpected response '''
     pass
 
+
 class TemporarilyUnavailableError(ResponseError):
     ''' My Pages is temporarily unavailable '''
     pass
 
+
 class MaintenanceError(ResponseError):
     ''' My Pages is currently in maintenance '''
     pass
+
 
 class Session(object):
     """ Verisure session """
@@ -79,6 +88,7 @@ class Session(object):
             raise LoginError('Login failed, myPages might be down')
         if not status['status'] == 'ok':
             raise LoginError(status['message'])
+        self._csrf = self._get_csrf()
 
     def logout(self):
         """ Ends session
@@ -109,7 +119,7 @@ class Session(object):
             'POST',
             DOMAIN + url,
             cookies=dict(self._session.cookies),
-            headers={'X-CSRF-TOKEN': self._get_csrf()}, #  WHY DO THIS EVERY TIME??
+            headers={'X-CSRF-TOKEN': self._csrf},
             data=data
             ).prepare()
         response = self._session.send(
@@ -144,18 +154,33 @@ class Session(object):
             orgJson = json.encode('utf-8')
             return eval(UNESCAPE(json))
         except Exception, e:
-            raise ResponseError('Unable to convert to JSON, Error: {0} - Data: {1}'.format(e, orgJson))
+            match = TITLE_REGEX.search(orgJson)
+            if match:
+                if match.group('title') == u'My Pages is temporarily unavailable -  Verisure':
+                    raise TemporarilyUnavailableError('Temporarily unavailable')
+                elif match.group('title') == u'My Pages - Maintenance -  Verisure':
+                    raise MaintenanceError('Maintenance')
+                elif match.group('title') == u'Choose country - My Pages - Verisure' or match.group('title') == u'Log in - My Pages - Verisure':
+                    raise LoggedOutError('Not logged in')
+                else:
+                    raise ResponseError(match.group('title'))
+            else:
+                raise ResponseError('Unable to convert to JSON, Error: {0} - Data: {1}'.format(e, orgJson))
 
     @staticmethod
     def validate_response(response):
         """ Verify that response is OK """
-        if "<title>My Pages is temporarily unavailable -  Verisure</title>" in response.text:
-            raise TemporarilyUnavailableError('Temporarily unavailable')
-        elif "<title>My Pages - Maintenance -  Verisure</title>" in response.text:
-            raise MaintenanceError('Maintenance')
-        elif "<title>Choose country - My Pages - Verisure</title>" in response.text:
-            raise LoggedOutError('Not logged in')
         if response.status_code != 200:
+            match = TITLE_REGEX.search(response.text)
+            if match:
+                if match.group('title') == u'My Pages is temporarily unavailable -  Verisure':
+                    raise TemporarilyUnavailableError('Temporarily unavailable')
+                elif match.group('title') == u'My Pages - Maintenance -  Verisure':
+                    raise MaintenanceError('Maintenance')
+                elif match.group('title') == u'Choose country - My Pages - Verisure' or match.group('title') == u'Log in - My Pages - Verisure':
+                    raise LoggedOutError('Not logged in')
+                else:
+                    raise ResponseError(match.group('title'))
             raise ResponseError(
                 'Unable to validate response form My Pages, status code: {0} - Data: {1}'.format(
                     response.status_code,

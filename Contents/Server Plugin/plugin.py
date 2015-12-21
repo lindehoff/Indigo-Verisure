@@ -27,6 +27,7 @@ class Plugin(indigo.PluginBase):
     self.debug = True
     self.updater = indigoPluginUpdateChecker.updateChecker(self, "https://raw.githubusercontent.com/lindehoff/Indigo-Verisure/master/versionInfoFile.html")
     self.tryingToLogin = False
+    self.loginErrorCount = 0
     self.currentSleepTime = int(self.pluginPrefs.get('updateRate', 300))
 
   def __del__(self):
@@ -41,17 +42,22 @@ class Plugin(indigo.PluginBase):
       self.debugLog(u"Debug is set to: "+str(indigo.activePlugin.pluginPrefs["debug"]))
       self.debug = indigo.activePlugin.pluginPrefs["debug"]
     self.currentSleepTime = int(self.pluginPrefs.get('updateRate', 300))
+    self.tryingToLogin = False
+    self.loginErrorCount = 0
 
   def login(self, force=False):
     if not self.tryingToLogin or force:
-      self.tryingToLogin = True
       if "verisureUsername" not in self.pluginPrefs or "verisurePassword" not in self.pluginPrefs:
         self.errorLog(u"Must enter Username and Password in Plugin Config")
       else:
+        self.tryingToLogin = True
         self.debugLog(u"Logging in")
         self.myPages = verisure.MyPages(self.pluginPrefs["verisureUsername"], self.pluginPrefs["verisurePassword"])
         self.myPages.login()
         self.debugLog(u"Logging in successfully.")
+        if self.loginErrorCount > 0:
+          indigo.server.log("Successfully connected to Verisure again")
+        self.loginErrorCount = 0
         self.tryingToLogin = False
 
   def shutdown(self):
@@ -96,6 +102,7 @@ class Plugin(indigo.PluginBase):
           try:
             self.login()
           except Exception, e:
+            self.loginErrorCount += 1
             if hasattr(self, "myPages"):
               delattr(self, "myPages")
             sleep = 60
@@ -105,8 +112,9 @@ class Plugin(indigo.PluginBase):
               sleep = 120
             elif type(e) == verisure.LoggedOutError:
               sleep = 5
+            sleep += 60 * self.loginErrorCount
 
-            self.errorLog("{0}: Unable to login to Verisure, retry in {1} sec. Reason: {2}".format(type(e).__name__, sleep, e))
+            self.errorLog("{0}: Unable to login to Verisure ({1}), retry in {2} sec. Reason: {3}".format(type(e).__name__, self.loginErrorCount, sleep, e))
             self.concurrentThreadSleep(sleep)
             self.tryingToLogin = False
             continue
@@ -136,6 +144,9 @@ class Plugin(indigo.PluginBase):
           verisureDeviceOverview = self.filterByValue(self.myPages.mousedetection.get(), "deviceLabel", dev.pluginProps["mouseDetectiorID"])
       except (verisure.LoggedOutError, verisure.TemporarilyUnavailableError) as e:
         self.debugLog("{0}: Unable to update device state on server. Connection to Verisure will be reseted. Device: {1}, Reason: {2}".format(type(e).__name__, dev.name.encode("utf-8"), e))
+
+        #Only during testing
+        self.errorLog("{0}: Unable to update device state on server. Connection to Verisure will be reseted. Device: {1}, Reason: {2}".format(type(e).__name__, dev.name.encode("utf-8"), e))
         delattr(self, "myPages")
         return
       except (verisure.MaintenanceError, verisure.LoginError, verisure.ResponseError, verisure.Error) as e:
@@ -282,11 +293,15 @@ class Plugin(indigo.PluginBase):
           elif "vector" in response:
             self.errorLog(response["vector"][0]["message"])
           else:
-            self.errorLog(u"Unable to updated Lock State")
+            self.errorLog(u"Unable to updated Lock State, response: {0}".format(response))
         else:
           self.errorLog(u"Unable to updated Lock State, event not sent, most likely your lock is already set to: {0}".format(state))
       except Exception, e:
         self.errorLog(str(e) + u", Unable to change lock state")
+        template = "An exception of type {0} occured. \nArguments:\t{1!r}\nTraceback:\t{2!r}"
+        message = template.format(type(e).__name__, e.args, traceback.format_exc())
+        self.errorLog("{1}".format(message))
+        
     else:
       self.debugLog(u"Currently not logged in, try again.")
 

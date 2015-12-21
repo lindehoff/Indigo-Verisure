@@ -14,6 +14,7 @@ sys.path.insert(0, '../Includes/python-verisure')
 import verisure
 import json
 import indigoPluginUpdateChecker
+import traceback
 
 # Note the "indigo" module is automatically imported and made available inside
 # our global name space by the host process.
@@ -25,6 +26,9 @@ class Plugin(indigo.PluginBase):
     indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
     self.debug = True
     self.updater = indigoPluginUpdateChecker.updateChecker(self, "https://raw.githubusercontent.com/lindehoff/Indigo-Verisure/master/versionInfoFile.html")
+    self.tryingToLogin = False
+    self.loginErrorCount = 0
+    self.currentSleepTime = int(self.pluginPrefs.get('updateRate', 300))
 
   def __del__(self):
     indigo.PluginBase.__del__(self)
@@ -37,27 +41,24 @@ class Plugin(indigo.PluginBase):
     else:
       self.debugLog(u"Debug is set to: "+str(indigo.activePlugin.pluginPrefs["debug"]))
       self.debug = indigo.activePlugin.pluginPrefs["debug"]
+    self.currentSleepTime = int(self.pluginPrefs.get('updateRate', 300))
+    self.tryingToLogin = False
+    self.loginErrorCount = 0
 
-  def login(self):
-    if "verisureUsername" not in self.pluginPrefs or "verisurePassword" not in self.pluginPrefs:
-      self.errorLog(u"Must enter Username and Password in Plugin Config")
-    else:
-      self.debugLog(u"Logging in")
-      self.myPages = verisure.MyPages(self.pluginPrefs["verisureUsername"], self.pluginPrefs["verisurePassword"])
-      try:
+  def login(self, force=False):
+    if not self.tryingToLogin or force:
+      if "verisureUsername" not in self.pluginPrefs or "verisurePassword" not in self.pluginPrefs:
+        self.errorLog(u"Must enter Username and Password in Plugin Config")
+      else:
+        self.tryingToLogin = True
+        self.debugLog(u"Logging in")
+        self.myPages = verisure.MyPages(self.pluginPrefs["verisureUsername"], self.pluginPrefs["verisurePassword"])
         self.myPages.login()
-      except verisure.LoginError as e:
-        if hasattr(self, "myPages"):
-          delattr(self, "myPages")
-        self.errorLog("Unable to login to Verisure, Reason: {0}".format(e))
-      except Exception, e:
-        if hasattr(self, "myPages"):
-          delattr(self, "myPages")
-        if "Too many failed login attempt" in str(e):
-          self.errorLog(str(e) + u",Uable to login, will try again in 10 minutes")
-          self.sleep(60*10)
-        else:
-          raise Exception('Error login in: ' + str(e)) 
+        self.debugLog(u"Logging in successfully.")
+        if self.loginErrorCount > 0:
+          indigo.server.log("Successfully connected to Verisure again")
+        self.loginErrorCount = 0
+        self.tryingToLogin = False
 
   def shutdown(self):
     self.debugLog(u"shutdown called")
@@ -71,7 +72,11 @@ class Plugin(indigo.PluginBase):
         self.debugLog(u"User prefs dialog cancelled.")
     if not userCancelled:
       try:
-        self.login()
+        self.currentSleepTime = 10
+        if hasattr(self, "myPages"):
+          self.debugLog(u"Logging out")
+          self.myPages.logout()
+        self.login(True)
       except Exception, e:
         self.errorLog(str(e))
     return
@@ -97,12 +102,34 @@ class Plugin(indigo.PluginBase):
           try:
             self.login()
           except Exception, e:
-            self.debugLog("Unable to login, will try again in a while, Reason: {0}".format(str(e)))
-            self.sleep(60)
-        else:
-          self.sleep(int(self.pluginPrefs.get('updateRate', 15)))
+            self.loginErrorCount += 1
+            if hasattr(self, "myPages"):
+              delattr(self, "myPages")
+            sleep = 60
+            if "Too many failed login attempt" in str(e):
+              sleep = 60*10
+            elif type(e) == verisure.MaintenanceError:
+              sleep = 120
+            elif type(e) == verisure.LoggedOutError:
+              sleep = 5
+            sleep += (60 * self.loginErrorCount) - 60
+            if self.loginErrorCount <=2:
+              self.debugLog("{0}: Unable to login to Verisure ({1}), retry in {2} sec. Reason: {3}".format(type(e).__name__, self.loginErrorCount, sleep, e))  
+            else:
+              self.errorLog("{0}: Unable to login to Verisure ({1}), retry in {2} sec. Reason: {3}".format(type(e).__name__, self.loginErrorCount, sleep, e))
+            self.concurrentThreadSleep(sleep)
+            self.tryingToLogin = False
+            continue
+        self.concurrentThreadSleep(int(self.pluginPrefs.get('updateRate', 300)))
     except self.StopThread:
       pass  # Optionally catch the StopThread exception and do any needed cleanup.
+
+  def concurrentThreadSleep(self, sec):
+    self.currentSleepTime = sec
+    while self.currentSleepTime > 0:
+      self.sleep(1)
+      #self.debugLog("Sleeping for {0} sec.".format(self.currentSleepTime))
+      self.currentSleepTime -= 1
 
   def _refreshAlarmStatesFromVerisure(self, dev):
     if hasattr(self, "myPages"):
@@ -117,20 +144,21 @@ class Plugin(indigo.PluginBase):
         elif dev.deviceTypeId == u"verisureMouseDetectionDeviceType":
           #return
           verisureDeviceOverview = self.filterByValue(self.myPages.mousedetection.get(), "deviceLabel", dev.pluginProps["mouseDetectiorID"])
-      except verisure.LoginError as e:
-        self.errorLog("Login Error: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+      except (verisure.LoggedOutError, verisure.TemporarilyUnavailableError) as e:
+        self.debugLog("{0}: Unable to update device state on server. Connection to Verisure will be reseted. Device: {1}, Reason: {2}".format(type(e).__name__, dev.name.encode("utf-8"), e))
+
+        #Only during testing
+        #self.errorLog("{0}: Unable to update device state on server. Connection to Verisure will be reseted. Device: {1}, Reason: {2}".format(type(e).__name__, dev.name.encode("utf-8"), e))
         delattr(self, "myPages")
         return
-      except verisure.ResponseError as e:
-        self.errorLog("Response Error: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
-        delattr(self, "myPages")
-        return
-      except verisure.Error as e:
-        self.errorLog("Verisure Error: Unable to update device state on server. Connection to Verisure will be reseted. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+      except (verisure.MaintenanceError, verisure.LoginError, verisure.ResponseError, verisure.Error) as e:
+        self.errorLog("{0}: Unable to update device state on server. Connection to Verisure will be reseted. Device: {1}, Reason: {2}".format(type(e).__name__, dev.name.encode("utf-8"), e))
         delattr(self, "myPages")
         return
       except Exception, e:
-        self.errorLog("Unknown Error: Unable to update device state on server. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), e))
+        template = "An exception of type {0} occured. \nArguments:\t{1!r}\nTraceback:\t{2!r}"
+        message = template.format(type(e).__name__, e.args, traceback.format_exc())
+        self.errorLog("Unknown Error: Unable to update device state on server. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), message))
         delattr(self, "myPages")
         return
 
@@ -160,7 +188,7 @@ class Plugin(indigo.PluginBase):
 
   def _updateDevUI(self, dev):
     lastUpdate = self.secSinceLastUpdate(dev)
-    maxUpdateTime = int(self.pluginPrefs.get('updateRate', 15)) * 5
+    maxUpdateTime = int(self.pluginPrefs.get('updateRate', 15)) * 10
     if dev.deviceTypeId == u"verisureAlarmDeviceType":
       if lastUpdate > maxUpdateTime:
         self.debugLog("{0} sec. since last update for device: {1}".format(lastUpdate, dev.name.encode("utf-8")))
@@ -267,11 +295,15 @@ class Plugin(indigo.PluginBase):
           elif "vector" in response:
             self.errorLog(response["vector"][0]["message"])
           else:
-            self.errorLog(u"Unable to updated Lock State")
+            self.errorLog(u"Unable to updated Lock State, response: {0}".format(response))
         else:
           self.errorLog(u"Unable to updated Lock State, event not sent, most likely your lock is already set to: {0}".format(state))
       except Exception, e:
         self.errorLog(str(e) + u", Unable to change lock state")
+        template = "An exception of type {0} occured. \nArguments:\t{1!r}\nTraceback:\t{2!r}"
+        message = template.format(type(e).__name__, e.args, traceback.format_exc())
+        self.errorLog("{1}".format(message))
+        
     else:
       self.debugLog(u"Currently not logged in, try again.")
 

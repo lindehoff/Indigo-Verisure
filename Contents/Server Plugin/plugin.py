@@ -114,7 +114,7 @@ class Plugin(indigo.PluginBase):
               sleep = 5
             sleep += (60 * self.loginErrorCount) - 60
             if self.loginErrorCount <=2:
-              self.debugLog("{0}: Unable to login to Verisure ({1}), retry in {2} sec. Reason: {3}".format(type(e).__name__, self.loginErrorCount, sleep, e))  
+              self.debugLog("{0}: Unable to login to Verisure ({1}), retry in {2} sec. Reason: {3}".format(type(e).__name__, self.loginErrorCount, sleep, e))
             else:
               self.errorLog("{0}: Unable to login to Verisure ({1}), retry in {2} sec. Reason: {3}".format(type(e).__name__, self.loginErrorCount, sleep, e))
             self.concurrentThreadSleep(sleep)
@@ -122,6 +122,7 @@ class Plugin(indigo.PluginBase):
             continue
         self.concurrentThreadSleep(int(self.pluginPrefs.get('updateRate', 300)))
     except self.StopThread:
+      self.errorLog("StopThread")
       pass  # Optionally catch the StopThread exception and do any needed cleanup.
 
   def concurrentThreadSleep(self, sec):
@@ -193,7 +194,7 @@ class Plugin(indigo.PluginBase):
       if lastUpdate > maxUpdateTime:
         self.debugLog("{0} sec. since last update for device: {1}".format(lastUpdate, dev.name.encode("utf-8")))
         dev.updateStateOnServer("status", value=u"unknown")
-    
+
       #Setting correct icon
       if dev.states['status'] == u"armed":
         dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
@@ -209,7 +210,7 @@ class Plugin(indigo.PluginBase):
       if lastUpdate > maxUpdateTime:
         self.debugLog("{0} sec. since last update for device: {1}".format(lastUpdate, dev.name.encode("utf-8")))
         dev.updateStateOnServer("status", value=u"pending")
-    
+
       #Setting correct icon
       if dev.states['status'] == u"locked":
         dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
@@ -240,7 +241,7 @@ class Plugin(indigo.PluginBase):
           dev.updateStateOnServer('onOffState', False)
           dev.updateStateImageOnServer(indigo.kStateImageSel.MotionSensor)
         dev.updateStateOnServer('sensorValue', value=int(dev.states['count']), uiValue=dev.states['amountText'].encode("utf-8"))
-  
+
   def secSinceLastUpdate(self, dev):
     try:
       lastUpdate = datetime.now() - datetime.strptime(dev.states['lastSynchronized'], "%Y-%m-%d %H:%M:%S")
@@ -303,9 +304,10 @@ class Plugin(indigo.PluginBase):
         template = "An exception of type {0} occured. \nArguments:\t{1!r}\nTraceback:\t{2!r}"
         message = template.format(type(e).__name__, e.args, traceback.format_exc())
         self.errorLog("{1}".format(message))
-        
+
     else:
       self.debugLog(u"Currently not logged in, try again.")
+      self.currentSleepTime = 1
 
   def updateAlarmStatus(self, pluginAction, dev):
     # alarm = dev.pluginProps['alarmID'] # multiple alarms is not currently supported
@@ -330,6 +332,7 @@ class Plugin(indigo.PluginBase):
         self.errorLog(str(e) + u", Unable to change alarm state")
     else:
       self.debugLog(u"Currently not logged in, try again.")
+      self.currentSleepTime = 1
 
   def createdDateString(self, dateStr):
     try:

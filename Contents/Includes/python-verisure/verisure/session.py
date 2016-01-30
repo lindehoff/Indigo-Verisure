@@ -17,9 +17,8 @@ URL_LOGIN = DOMAIN + '/j_spring_security_check?locale=en_GB'
 URL_START = DOMAIN + '/uk/start.html'
 RESPONSE_TIMEOUT = 3
 CSRF_REGEX = re.compile(
-    r'\<input type="hidden" name="_csrf" value="' +
-    r'(?P<csrf>([a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}))' +
-    r'" /\>')
+    r'X-CSRF-TOKEN\': \'' +
+    r'(?P<csrf>([a-f0-9]{64}))')
 
 TITLE_REGEX = re.compile(r'\<title\>(?P<title>(.*))\</title\>')
 
@@ -136,7 +135,10 @@ class Session(object):
             timeout=RESPONSE_TIMEOUT)
         self.validate_response(response)
         match = CSRF_REGEX.search(response.text)
-        return match.group('csrf')
+        if match:
+          return match.group('csrf')
+        else:
+          raise Error("Unable to get csrf")
 
     def _ensure_session(self):
         ''' ensures that a session is created '''
@@ -173,6 +175,7 @@ class Session(object):
         if response.status_code != 200:
             match = TITLE_REGEX.search(response.text)
             if match:
+              try:
                 if match.group('title') == u'My Pages is temporarily unavailable -  Verisure':
                     raise TemporarilyUnavailableError('Temporarily unavailable')
                 elif match.group('title') == u'My Pages - Maintenance -  Verisure':
@@ -181,8 +184,9 @@ class Session(object):
                     raise LoggedOutError('Not logged in')
                 else:
                     raise ResponseError(match.group('title'))
+              except Exception, e:
+                pass
             raise ResponseError(
                 'Unable to validate response form My Pages, status code: {0} - Data: {1}'.format(
                     response.status_code,
                     response.text.encode('utf-8')))
-

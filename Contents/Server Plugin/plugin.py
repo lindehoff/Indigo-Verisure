@@ -10,7 +10,6 @@ import os
 import sys
 import time
 from datetime import datetime, timedelta
-sys.path.insert(0, '../Includes/python-verisure')
 import verisure
 import json
 import indigoPluginUpdateChecker
@@ -168,7 +167,7 @@ class Plugin(indigo.PluginBase):
           if state.encode("utf-8") == "date".encode("utf-8") or state.encode("utf-8") == "timestamp".encode("utf-8"):
             newState = self.createdDateString(verisureDeviceOverview.__dict__[state].encode("utf-8"))
           elif state.encode("utf-8") == "temperature".encode("utf-8"):
-            temperature = verisureDeviceOverview.__dict__[state].replace("°","").replace(",",".")
+            temperature = verisureDeviceOverview.__dict__[state].encode("utf-8").replace("°","").replace(",",".")
             newState = (u"%.1f" % float(temperature))
           else:
             if type(verisureDeviceOverview.__dict__[state]) is str:

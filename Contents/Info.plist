@@ -2,18 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>PluginVersion</key>
-	<string>0.2.6</string>
-	<key>ServerApiVersion</key>
-	<string>1.19</string>
-	<key>IwsApiVersion</key>
-	<string>1.0.0</string>
 	<key>CFBundleDisplayName</key>
 	<string>Verisure</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.github.lindehoff.indigo-verisure</string>
-	<key>CFBundleVersion</key>
-	<string>1.0.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -21,5 +13,13 @@
 			<string>https://github.com/lindehoff/Indigo-Verisure</string>
 		</dict>
 	</array>
+	<key>CFBundleVersion</key>
+	<string>1.0.0</string>
+	<key>IwsApiVersion</key>
+	<string>1.0.0</string>
+	<key>PluginVersion</key>
+	<string>0.2.7</string>
+	<key>ServerApiVersion</key>
+	<string>1.19</string>
 </dict>
 </plist>

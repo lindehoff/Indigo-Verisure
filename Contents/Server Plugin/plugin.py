@@ -12,7 +12,7 @@ import time
 from datetime import datetime, timedelta
 import verisure
 import json
-import indigoPluginUpdateChecker
+from ghpu import GitHubPluginUpdater
 import traceback
 
 # Note the "indigo" module is automatically imported and made available inside
@@ -24,10 +24,13 @@ class Plugin(indigo.PluginBase):
   def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
     indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
     self.debug = True
-    self.updater = indigoPluginUpdateChecker.updateChecker(self, "https://raw.githubusercontent.com/lindehoff/Indigo-Verisure/master/versionInfoFile.html")
+    timeNow = time.time()
+    self.nextCheck = timeNow - 86400
+    self.updater = GitHubPluginUpdater('lindehoff', 'Indigo-Verisure', self)
     self.tryingToLogin = False
     self.loginErrorCount = 0
     self.currentSleepTime = int(self.pluginPrefs.get('updateRate', 300))
+
 
   def __del__(self):
     indigo.PluginBase.__del__(self)
@@ -90,7 +93,12 @@ class Plugin(indigo.PluginBase):
   def runConcurrentThread(self):
     try:
       while True:
-        self.updater.checkVersionPoll()
+        # Did we check if there was an update within the last
+        timeNow = time.time()
+        # If the version wasn't checked within our time period then check
+        if timeNow > self.nextCheck:
+          self.updater.checkForUpdate()
+          self.nextCheck = timeNow + 86400
         self.debugLog(u"Checking status for all Verisure Devices")
         for dev in indigo.devices.iter("self"):
           if not dev.enabled or not dev.configured:
@@ -155,7 +163,7 @@ class Plugin(indigo.PluginBase):
         self.errorLog("{0}: Unable to update device state on server. Connection to Verisure will be reseted. Device: {1}, Reason: {2}".format(type(e).__name__, dev.name.encode("utf-8"), e))
         delattr(self, "myPages")
         return
-      except Exception, e:
+      except Exception as e:
         template = "An exception of type {0} occured. \nArguments:\t{1!r}\nTraceback:\t{2!r}"
         message = template.format(type(e).__name__, e.args, traceback.format_exc())
         self.errorLog("Unknown Error: Unable to update device state on server. Device: {0}, Reason: {1}".format(dev.name.encode("utf-8"), message))
@@ -404,5 +412,8 @@ class Plugin(indigo.PluginBase):
       self._refreshAlarmStatesFromVerisure(dev)
 
   def checkForUpdates(self):
-   indigo.server.log(u"Manually checking for updates")
-   self.updater.checkVersionNow()
+    indigo.server.log(u"Manually checking for updates")
+    self.updater.checkForUpdate()
+
+  def updatePlugin(self):
+    self.updater.update()

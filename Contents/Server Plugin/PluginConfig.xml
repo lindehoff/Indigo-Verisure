@@ -21,15 +21,15 @@
   </Field>
 
 ￼<Field id="simpleSeparator1" type="separator"/>
-
+<!-- Email not available in this version of ghpu
   <Field id="updaterEmailsEnabled" type="checkbox" defaultValue="true">
      <Label>Email Update Notifications:</Label>
   </Field>
-  <!-- Do NOT change the ids -->
   <Field id="updaterEmail" type="textfield">
      <Label>Email:</Label>
   </Field>
   <Field id="updaterEmailNote" type="label" fontColor="darkgray" fontSize="small" alignWithControl="true">
      <Label>Email sending must be configured in Indigo's preferences.</Label>
   </Field>
+   -->
 </PluginConfig>

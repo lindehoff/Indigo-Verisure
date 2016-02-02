@@ -147,6 +147,11 @@ class Plugin(indigo.PluginBase):
           verisureDeviceOverview = self.filterByValue(self.myPages.alarm.get(), "id", dev.pluginProps["alarmID"])
         elif dev.deviceTypeId == u"verisureDoorLockDeviceType":
           verisureDeviceOverview = self.filterByValue(self.myPages.lock.get(), "id", dev.pluginProps["doorLockID"])
+          autoLocks = self.myPages.lock.get_autorelock()
+          lockId = dev.pluginProps['doorLockID'].encode("utf-8")
+          for lock in autoLocks['doorLocks']:
+            if lock['deviceLabel'].encode("utf-8").replace(" ","") == lockId:
+              verisureDeviceOverview.__dict__['automaticLocking'] = lock['autoRelockEnabled']
         elif dev.deviceTypeId == u"verisureClimateDeviceType":
           verisureDeviceOverview = self.filterByValue(self.myPages.climate.get(), "id", dev.pluginProps["climateID"])
         elif dev.deviceTypeId == u"verisureMouseDetectionDeviceType":

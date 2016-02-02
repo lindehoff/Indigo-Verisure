@@ -412,5 +412,8 @@ class Plugin(indigo.PluginBase):
       self._refreshAlarmStatesFromVerisure(dev)
 
   def checkForUpdates(self):
-   indigo.server.log(u"Manually checking for updates")
-   self.updater.checkVersionNow()
+    indigo.server.log(u"Manually checking for updates")
+    self.updater.checkForUpdate()
+
+  def updatePlugin(self):
+    self.updater.update()

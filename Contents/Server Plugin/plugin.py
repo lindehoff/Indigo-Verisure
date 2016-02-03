@@ -321,6 +321,31 @@ class Plugin(indigo.PluginBase):
       self.debugLog(u"Currently not logged in, try again.")
       self.currentSleepTime = 1
 
+  def updateAutoLockStatus(self, pluginAction, dev):
+    lock = dev.pluginProps['doorLockID']
+    lockId = "{0} {1}".format(lock[:4], lock[4:])
+    state = pluginAction.props['automaticLocking']
+    indigo.server.log(lock)
+    if hasattr(self, "myPages"):
+      try:
+        self.debugLog("Trying to update autolock '{0}' to {1}".format(dev.states["location"], str(state)))
+        self.debugLog("{0} to {1}".format(lockId, state))
+        sentStatus = self.myPages.lock.set_autorelock(lockId, state)
+        if sentStatus:
+          indigo.server.log(u"Updated AutoLock State: "+str(state))
+        else:
+          self.errorLog(u"Unable to updated AutoLock State, event not sent, most likely your autolock is already set to: {0}".format(str(state)))
+      except Exception, e:
+        self.errorLog(str(e) + u", Unable to change autolock state")
+        #template = "An exception of type {0} occured. \nArguments:\t{1!r}\nTraceback:\t{2!r}"
+        #message = template.format(type(e).__name__, e.args, traceback.format_exc())
+        #self.errorLog("{1}".format(message))
+
+    else:
+      self.debugLog(u"Currently not logged in, try again.")
+      self.currentSleepTime = 1
+
+
   def updateAlarmStatus(self, pluginAction, dev):
     # alarm = dev.pluginProps['alarmID'] # multiple alarms is not currently supported
     pin = self.substituteVariable(pluginAction.props.get("userPin"), validateOnly=False)

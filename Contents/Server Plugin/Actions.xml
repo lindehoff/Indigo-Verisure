@@ -6,7 +6,7 @@
     <ConfigUI>
       <Field id="userPin" type="textfield" defaultValue="" secure="true">
         <Label>Verisure Door Lock PIN:</Label>
-      </Field>      
+      </Field>
       <Field id="new_status" type="menu" defaultValue="">
         <Label>State:</Label>
         <List>
@@ -17,13 +17,23 @@
       <SupportURL>https://github.com/lindehoff/Indigo-Verisure/issues</SupportURL>
     </ConfigUI>
   </Action>
+  <Action id="UpdateAutoLockStatus" deviceFilter="self.verisureDoorLockDeviceType">
+    <Name>Update AutoLock Status</Name>
+    <CallbackMethod>updateAutoLockStatus</CallbackMethod>
+    <ConfigUI>
+      <Field id="automaticLocking" type="checkbox" defaultValue="">
+        <Label>Automatic Locking:</Label>
+      </Field>
+      <SupportURL>https://github.com/lindehoff/Indigo-Verisure/issues</SupportURL>
+    </ConfigUI>
+  </Action>
   <Action id="UpdateAlarmStatus" deviceFilter="self.verisureAlarmDeviceType">
     <Name>Update Alarm Status</Name>
     <CallbackMethod>updateAlarmStatus</CallbackMethod>
     <ConfigUI>
       <Field id="userPin" type="textfield" defaultValue="" secure="true">
         <Label>Verisure Alarm PIN:</Label>
-      </Field>      
+      </Field>
       <Field id="new_status" type="menu" defaultValue="">
         <Label>State:</Label>
         <List>

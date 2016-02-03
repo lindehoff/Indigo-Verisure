@@ -1,8 +1,6 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 ####################
-# Copyright (c) 2014, Perceptive Automation, LLC. All rights reserved.
-# http://www.indigodomo.com
 
 import indigo
 import re
@@ -155,13 +153,9 @@ class Plugin(indigo.PluginBase):
         elif dev.deviceTypeId == u"verisureClimateDeviceType":
           verisureDeviceOverview = self.filterByValue(self.myPages.climate.get(), "id", dev.pluginProps["climateID"])
         elif dev.deviceTypeId == u"verisureMouseDetectionDeviceType":
-          #return
           verisureDeviceOverview = self.filterByValue(self.myPages.mousedetection.get(), "deviceLabel", dev.pluginProps["mouseDetectiorID"])
       except (verisure.LoggedOutError, verisure.TemporarilyUnavailableError) as e:
         self.debugLog("{0}: Unable to update device state on server. Connection to Verisure will be reseted. Device: {1}, Reason: {2}".format(type(e).__name__, dev.name.encode("utf-8"), e))
-
-        #Only during testing
-        #self.errorLog("{0}: Unable to update device state on server. Connection to Verisure will be reseted. Device: {1}, Reason: {2}".format(type(e).__name__, dev.name.encode("utf-8"), e))
         delattr(self, "myPages")
         return
       except (verisure.MaintenanceError, verisure.LoginError, verisure.ResponseError, verisure.Error) as e:
@@ -325,22 +319,16 @@ class Plugin(indigo.PluginBase):
     lock = dev.pluginProps['doorLockID']
     lockId = "{0} {1}".format(lock[:4], lock[4:])
     state = pluginAction.props['automaticLocking']
-    indigo.server.log(lock)
     if hasattr(self, "myPages"):
       try:
-        self.debugLog("Trying to update autolock '{0}' to {1}".format(dev.states["location"], str(state)))
-        self.debugLog("{0} to {1}".format(lockId, state))
+        self.debugLog("Trying to update autolock for '{0}' to {1}".format(dev.states["location"], str(state)))
         sentStatus = self.myPages.lock.set_autorelock(lockId, state)
         if sentStatus:
-          indigo.server.log(u"Updated AutoLock State: "+str(state))
+          indigo.server.log("Updated autolock for '{0}' to {1}".format(dev.states["location"], str(state)))
         else:
           self.errorLog(u"Unable to updated AutoLock State, event not sent, most likely your autolock is already set to: {0}".format(str(state)))
       except Exception, e:
         self.errorLog(str(e) + u", Unable to change autolock state")
-        #template = "An exception of type {0} occured. \nArguments:\t{1!r}\nTraceback:\t{2!r}"
-        #message = template.format(type(e).__name__, e.args, traceback.format_exc())
-        #self.errorLog("{1}".format(message))
-
     else:
       self.debugLog(u"Currently not logged in, try again.")
       self.currentSleepTime = 1

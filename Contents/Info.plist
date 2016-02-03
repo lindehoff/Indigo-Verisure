@@ -10,7 +10,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>https://github.com/lindehoff/Indigo-Verisure</string>
+			<string>https://github.com/lindehoff/Indigo-Verisure/releases/tag/0.2.8</string>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>

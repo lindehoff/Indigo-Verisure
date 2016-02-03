@@ -167,7 +167,6 @@
         <ControlPageLabel>Current Status</ControlPageLabel>
         <ControlPageLabelPrefix>Status is</ControlPageLabelPrefix>
       </State>
-
       <State id="name">
         <ValueType>String</ValueType>
         <TriggerLabel>Person who made last change</TriggerLabel>
@@ -183,11 +182,15 @@
         <TriggerLabel>Last change</TriggerLabel>
         <ControlPageLabel>Last change</ControlPageLabel>
       </State>
-
       <State id="location">
         <ValueType>String</ValueType>
         <TriggerLabel>Location</TriggerLabel>
         <ControlPageLabel>Location</ControlPageLabel>
+      </State>
+      <State id="automaticLocking">
+        <ValueType>Boolean</ValueType>
+        <TriggerLabel>Automatic Locking</TriggerLabel>
+        <ControlPageLabel>Automatic Locking</ControlPageLabel>
       </State>
       <State id="lastSynchronized">
         <ValueType>string</ValueType>
@@ -197,4 +200,3 @@
     </States>
   </Device>
 </Devices>
-

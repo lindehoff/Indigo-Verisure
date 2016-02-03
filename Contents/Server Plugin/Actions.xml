@@ -21,7 +21,7 @@
     <Name>Update AutoLock Status</Name>
     <CallbackMethod>updateAutoLockStatus</CallbackMethod>
     <ConfigUI>
-      <Field id="automaticLocking" type="checkbox" defaultValue="">
+      <Field id="automaticLocking" type="checkbox" defaultValue="False">
         <Label>Automatic Locking:</Label>
       </Field>
       <SupportURL>https://github.com/lindehoff/Indigo-Verisure/issues</SupportURL>

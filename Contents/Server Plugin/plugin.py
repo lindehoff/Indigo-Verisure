@@ -316,11 +316,14 @@ class Plugin(indigo.PluginBase):
       self.currentSleepTime = 1
 
   def updateAutoLockStatus(self, pluginAction, dev):
-    lock = dev.pluginProps['doorLockID']
-    lockId = "{0} {1}".format(lock[:4], lock[4:])
-    state = pluginAction.props['automaticLocking']
     if hasattr(self, "myPages"):
       try:
+        lock = dev.pluginProps['doorLockID']
+        lockId = "{0} {1}".format(lock[:4], lock[4:])
+        if 'automaticLocking' in pluginAction.props:
+          state = pluginAction.props['automaticLocking']
+        else:
+          state = False
         self.debugLog("Trying to update autolock for '{0}' to {1}".format(dev.states["location"], str(state)))
         sentStatus = self.myPages.lock.set_autorelock(lockId, state)
         if sentStatus:

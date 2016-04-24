@@ -8,10 +8,14 @@ import os
 import sys
 import time
 from datetime import datetime, timedelta
+import logging
 import verisure
 import json
 from ghpu import GitHubPluginUpdater
 import traceback
+logging.getLogger("verisure").setLevel(logging.WARNING)
+logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 # Note the "indigo" module is automatically imported and made available inside
 # our global name space by the host process.

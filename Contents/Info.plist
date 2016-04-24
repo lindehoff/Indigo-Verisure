@@ -18,7 +18,7 @@
 	<key>IwsApiVersion</key>
 	<string>1.0.0</string>
 	<key>PluginVersion</key>
-	<string>0.3.1</string>
+	<string>0.3.2</string>
 	<key>ServerApiVersion</key>
 	<string>1.19</string>
 </dict>

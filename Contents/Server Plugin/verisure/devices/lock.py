@@ -42,7 +42,7 @@ class Lock(object):
             'deviceLabel': device_id,
             'state': state
         }
-        return not self._session.post(COMMAND_URL, data)
+        return self._session.post(COMMAND_URL, data)
 
     def get_autorelock(self):
         """ Get autorelock status """

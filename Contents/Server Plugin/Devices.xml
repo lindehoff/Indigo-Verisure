@@ -138,7 +138,7 @@
       </State>
     </States>
   </Device>
-  <Device type="custom" id="verisureDoorLockDeviceType">
+  <Device type="relay" id="verisureDoorLockDeviceType">
     <Name>Verisure Door Lock</Name>
     <ConfigUI>
       <Field
@@ -151,6 +151,10 @@
           method="getVerisureDeviceList"
           dynamicReload="true"/>
       </Field>
+      <Field id="userPin" type="textfield" defaultValue="" secure="true">
+        <Label>Verisure Door Lock PIN:</Label>
+      </Field>
+      <Field type="checkbox" id="IsLockSubType" hidden="true" defaultValue="true" />
     </ConfigUI>
     <UiDisplayStateId>status</UiDisplayStateId>
     <States>

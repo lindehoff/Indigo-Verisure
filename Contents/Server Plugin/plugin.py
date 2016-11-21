@@ -223,9 +223,11 @@ class Plugin(indigo.PluginBase):
 
       #Setting correct icon
       if dev.states['status'] == u"locked":
-        dev.updateStateImageOnServer(indigo.kStateImageSel.SensorTripped)
+        dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
+        dev.updateStateOnServer('onOffState', True)
       elif dev.states['status'] == u"unlocked":
-        dev.updateStateImageOnServer(indigo.kStateImageSel.SensorOn)
+        dev.updateStateImageOnServer(indigo.kStateImageSel.Auto)
+        dev.updateStateOnServer('onOffState', False)
       elif dev.states['status'] == u"pending":
         dev.updateStateImageOnServer(indigo.kStateImageSel.TimerOn)
       else:
@@ -418,6 +420,46 @@ class Plugin(indigo.PluginBase):
       indigo.server.log(u"ignored \"%s\" %s request (sensor is read-only)" % (dev.name, "toggle"))
       # But we could request a sensor state update if we wanted like this:
       # dev.updateStateOnServer("onOffState", not dev.onState)
+
+  ########################################
+  # Action Control callback
+  ######################
+  def actionControlDevice(self, action, dev):
+    if action.deviceAction == indigo.kDeviceAction.Lock or action.deviceAction == indigo.kDeviceAction.Unlock:
+      if action.deviceAction == indigo.kDeviceAction.Unlock:
+        state = 'UNLOCKED'
+      else:
+        state = 'LOCKED'
+      lock = dev.pluginProps['doorLockID']
+      pin = dev.pluginProps['userPin']
+      if hasattr(self, "myPages"):
+        try:
+          self.debugLog("Trying to update lock '{0}' to {1}.".format(dev.states["location"], state))
+          sentStatus = self.myPages.lock.set(pin, lock, state)
+          response = self.myPages.alarm.wait_while_pending()
+          if type(response) is int and response >= 0 and type(sentStatus) is not dict:
+            indigo.server.log(u"Updated Lock State: " + state)
+            self._refreshAlarmStatesFromVerisure(dev)
+          elif (type(response) is int and response == -1) or type(sentStatus) is dict:
+            if "vector" in sentStatus:
+              self.errorLog(sentStatus["vector"][0]["message"])
+            else:
+              self.errorLog(
+                  u"Unable to updated Lock State, event not sent, most likely your lock is already set to: {0}".format(
+                    state))
+          elif "vector" in response:
+            self.errorLog(response["vector"][0]["message"])
+          else:
+            self.errorLog(u"Unable to updated Lock State, response: {0}".format(response))
+        except Exception, e:
+          self.errorLog(str(e) + u", Unable to change lock state")
+          template = "An exception of type {0} occured. \nArguments:\t{1!r}\nTraceback:\t{2!r}"
+          message = template.format(type(e).__name__, e.args, traceback.format_exc())
+          self.errorLog("{1}".format(message))
+
+      else:
+        self.debugLog(u"Currently not logged in, try again.")
+        self.currentSleepTime = 1
 
   ########################################
   # General Action callback

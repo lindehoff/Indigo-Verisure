@@ -232,8 +232,7 @@ class Session(object):
         match = TITLE_REGEX.search(doc)
         if not match:
             raise default_error
-        if match.group('title') == ("My Pages is temporarily unavailable"
-                                    "-  Verisure"):
+        if match.group('title') == ("My Pages is temporarily unavailable -  Verisure") or match.group('title') == ("My Pages is temporarily unavailable -  Verisure"):
             raise TemporarilyUnavailableError('Temporarily unavailable')
         if match.group('title') == 'My Pages - Maintenance -  Verisure':
             raise MaintenanceError('Maintenance')

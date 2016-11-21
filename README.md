@@ -3,21 +3,14 @@
 
 ## Requirements
 
-1. [Indigo 6](http://www.perceptiveautomation.com/indigo/index.html) or later (pro version only)
-2. [Verisure Python Module](https://pypi.python.org/pypi/vsure)
-3. [Verisure Alarm System](http://www.verisure.com)
-4. Verisure [User account](https://mypages.verisure.com)
+1. [Indigo 7](http://www.perceptiveautomation.com/indigo/index.html) or later (pro version only)
+2. [Verisure Alarm System](http://www.verisure.com)
+3. Verisure [User account](https://mypages.verisure.com)
 
 ## Installation Instructions
 
-1. Install requests, see details below
-2. Download latest release [here](hhttps://github.com/lindehoff/Indigo-Verisure/releases)
-3. Follow [standard plugin installation process](http://bit.ly/1e1Vc7b)
-
-### Installing Verisure module
-```
-sudo pip2.6 install vsure
-```
+1. Download latest release [here](hhttps://github.com/lindehoff/Indigo-Verisure/releases)
+2. Follow [standard plugin installation process](http://bit.ly/1e1Vc7b)
 
 ## Actions Supported
 * Update Lock Status (Lock and Unlock)

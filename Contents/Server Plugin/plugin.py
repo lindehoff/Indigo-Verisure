@@ -427,8 +427,10 @@ class Plugin(indigo.PluginBase):
   def actionControlDevice(self, action, dev):
     if action.deviceAction == indigo.kDeviceAction.Lock or action.deviceAction == indigo.kDeviceAction.Unlock:
       if action.deviceAction == indigo.kDeviceAction.Unlock:
+        indigo.server.log(u"sent \"%s\" %s" % (dev.name, "Unlock request"))
         state = 'UNLOCKED'
       else:
+        indigo.server.log(u"sent \"%s\" %s" % (dev.name, "Lock request"))
         state = 'LOCKED'
       lock = dev.pluginProps['doorLockID']
       pin = dev.pluginProps['userPin']
